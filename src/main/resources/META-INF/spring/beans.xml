@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    
+    <bean id="dischargeSummaryProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
+    	<constructor-arg>
+    		<bean class="uk.nhs.itk.ciao.toc.DomToJsonAdaptor">
+		    	<constructor-arg>
+		    		<bean class="uk.nhs.itk.ciao.toc.TikaDischargeSummaryReader">
+		    			<constructor-arg>
+		    				<bean class="uk.nhs.itk.ciao.toc.TikaParserFactory" factory-method="createParser" />
+		    			</constructor-arg>
+		    		</bean>
+		    	</constructor-arg>
+		    </bean>
+    	</constructor-arg>
+    </bean>
+    
+	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel">
+		<propertyPlaceholder id="properties" location="/ciao-transfer-of-care.properties"/>
+		
+		<package>uk.nhs.itk.ciao.toc</package>
+		
+		<!--
+		<route>
+	      <from uri="file://./local"/>
+	      <to uri="file://./local2"/>
+	    </route>
+	    -->
+	</camelContext>
+</beans>
