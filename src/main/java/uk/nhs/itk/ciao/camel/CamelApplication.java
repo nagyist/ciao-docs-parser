@@ -1,5 +1,7 @@
 package uk.nhs.itk.ciao.camel;
 
+import org.apache.camel.CamelContext;
+import org.apache.camel.spi.Registry;
 import org.apache.camel.spring.Main;
 import org.apache.camel.util.IOHelper;
 import org.slf4j.Logger;
@@ -70,6 +72,27 @@ public class CamelApplication extends Main {
 	 */
 	public static CamelApplication getInstance() {
 		return instance;
+	}
+	
+	/**
+	 * Gets the CIAOConfig from the specified camel context
+	 * 
+	 * @return The configuration stored in the context's registry
+	 * @see CiaoParentApplicationContextFactory#PROPERTY_CIAO_CONFIG
+	 */
+	public static CIAOConfig getConfig(final CamelContext context) {
+		return getConfig(context.getRegistry());
+	}
+	
+	/**
+	 * Gets the CIAOConfig from the specified camel registry
+	 * 
+	 * @return The configuration stored in the specified registry
+	 * @see CiaoParentApplicationContextFactory#PROPERTY_CIAO_CONFIG
+	 */
+	public static CIAOConfig getConfig(final Registry registry) {
+		return registry.lookupByNameAndType(CiaoParentApplicationContextFactory.PROPERTY_CIAO_CONFIG,
+				CIAOConfig.class);
 	}
 	
 	private final CIAOConfig config;

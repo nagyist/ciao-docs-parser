@@ -1,13 +1,14 @@
 package uk.nhs.itk.ciao.toc;
 
-import java.util.Properties;
-
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.nhs.itk.ciao.CIPRoutes;
+import uk.nhs.itk.ciao.camel.CamelApplication;
+import uk.nhs.itk.ciao.configuration.CIAOConfig;
+import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
 
 public class TransferOfCareRoutes extends CIPRoutes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TransferOfCareRoutes.class);
@@ -17,15 +18,18 @@ public class TransferOfCareRoutes extends CIPRoutes {
 	public void configure() {
 		super.configure();
 		
-		final Properties ciaoProperties = getContext().getRegistry()
-				.lookupByNameAndType("ciaoProperties", Properties.class);
+		final CIAOConfig config = CamelApplication.getConfig(getContext());
 		
-		final String[] routeNames = ciaoProperties.getProperty(ROOT_PROPERTY).split(",");
-		for (final String routeName: routeNames) {
-			final ParseDocumentRouteBuilder builder = new ParseDocumentRouteBuilder(
-					routeName, ciaoProperties);
-			builder.configure();
-		}	
+		try {
+			final String[] routeNames = config.getConfigValue(ROOT_PROPERTY).split(",");
+			for (final String routeName: routeNames) {
+				final ParseDocumentRouteBuilder builder = new ParseDocumentRouteBuilder(
+						routeName, config);
+				builder.configure();
+			}
+		} catch (CIAOConfigurationException e) {
+			throw new RuntimeException("Unable to build routes from CIAOConfig", e);
+		}
 	}
 	
 	private class ParseDocumentRouteBuilder {
@@ -38,30 +42,32 @@ public class TransferOfCareRoutes extends CIPRoutes {
 		private final String idempotentRepositoryId;
 		private final String inProgressRepositoryId;
 		
-		public ParseDocumentRouteBuilder(final String name, final Properties ciaoProperties) {
+		public ParseDocumentRouteBuilder(final String name, final CIAOConfig config) throws CIAOConfigurationException {
 			this.name = name;
-			this.inputFolder = findProperty(ciaoProperties, "inputFolder");
-			this.processorId = findProperty(ciaoProperties, "processorId");
-			this.outputFolder = findProperty(ciaoProperties, "outputFolder");
-			this.completedFolder = findProperty(ciaoProperties, "completedFolder");			
-			this.errorFolder = findProperty(ciaoProperties, "errorFolder");
-			this.idempotentRepositoryId = findProperty(ciaoProperties, "idempotentRepositoryId");
-			this.inProgressRepositoryId = findProperty(ciaoProperties, "inProgressRepositoryId");
+			this.inputFolder = findProperty(config, "inputFolder");
+			this.processorId = findProperty(config, "processorId");
+			this.outputFolder = findProperty(config, "outputFolder");
+			this.completedFolder = findProperty(config, "completedFolder");			
+			this.errorFolder = findProperty(config, "errorFolder");
+			this.idempotentRepositoryId = findProperty(config, "idempotentRepositoryId");
+			this.inProgressRepositoryId = findProperty(config, "inProgressRepositoryId");
 		}
 		
-		private String findProperty(final Properties ciaoProperties, final String propertyName) {
-			// Try the specific 'named' property
-			String property = ciaoProperties.getProperty(ROOT_PROPERTY + "." + name + "." + propertyName, "");
-			if (property.isEmpty()) {
-				// Fall back to the general 'all-routes' property
-				property = ciaoProperties.getProperty(ROOT_PROPERTY + "." + propertyName, "");				
-				if (property.isEmpty()) {
-					throw new IllegalArgumentException("Could not find property " + propertyName +
-							" for route " + name);
-				}
+		/**
+		 * Try the specific 'named' property then fall back to the general 'all-routes' property
+		 */
+		private String findProperty(final CIAOConfig config, final String propertyName) throws CIAOConfigurationException {
+			final String specificName = ROOT_PROPERTY + "." + name + "." + propertyName;
+			final String genericName = ROOT_PROPERTY + "." + propertyName;
+			if (config.getConfigKeys().contains(specificName)) {
+				return config.getConfigValue(specificName);
+			} else if (config.getConfigKeys().contains(genericName)) {
+				
+				return config.getConfigValue(genericName);
+			} else {
+				throw new CIAOConfigurationException("Could not find property " + propertyName +
+						" for route " + name);
 			}
-			
-			return property;
 		}
 
 		@SuppressWarnings("deprecation")

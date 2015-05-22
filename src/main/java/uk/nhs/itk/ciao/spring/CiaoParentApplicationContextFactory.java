@@ -34,6 +34,9 @@ import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
  * would otherwise be impossible).
  */
 public class CiaoParentApplicationContextFactory {
+	public static final String PROPERTY_CIAO_CONFIG = "ciaoConfig";
+	public static final String PROPERTY_CIAO_PROPERTIES = "ciaoProperties";
+	
 	private final CIAOConfig config;
 	
 	public CiaoParentApplicationContextFactory(final CIAOConfig config) {
@@ -59,7 +62,7 @@ public class CiaoParentApplicationContextFactory {
 	 * Adds the CIAO properties as a spring environment property source
 	 */
 	private void registerEnvironmentPropertySource(final ConfigurableApplicationContext context) throws CIAOConfigurationException {
-		final PropertySource<CIAOConfig> propertySource = new CIAOConfigPropertySource("ciaoProperties", config);
+		final PropertySource<CIAOConfig> propertySource = new CIAOConfigPropertySource(PROPERTY_CIAO_CONFIG, config);
 		context.getEnvironment().getPropertySources().addFirst(propertySource);
 	}
 
@@ -68,8 +71,8 @@ public class CiaoParentApplicationContextFactory {
 	 */
 	private void registerPropertiesBeans(final StaticApplicationContext parentContext)
 			throws CIAOConfigurationException {
-		parentContext.registerBeanDefinition("ciaoConfig", defineSingletonBean(CIAOConfig.class, config));
-		parentContext.registerBeanDefinition("ciaoProperties", defineSingletonBean(Properties.class,
+		parentContext.registerBeanDefinition(PROPERTY_CIAO_CONFIG, defineSingletonBean(CIAOConfig.class, config));
+		parentContext.registerBeanDefinition(PROPERTY_CIAO_PROPERTIES, defineSingletonBean(Properties.class,
 				config.getAllProperties()));
 	}
 	
