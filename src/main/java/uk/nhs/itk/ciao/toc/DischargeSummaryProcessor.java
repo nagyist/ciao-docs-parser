@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closeables;
 
 public class DischargeSummaryProcessor implements Processor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DischargeSummaryProcessor.class);
@@ -27,12 +28,16 @@ public class DischargeSummaryProcessor implements Processor {
 		final String location = inputMessage.getHeader(Exchange.FILE_PATH, String.class);
 		final InputStream body = inputMessage.getBody(InputStream.class);
 		
-		final Map<String, Object> properties = parser.parseDocument(body);
-		LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
-		
-		final DischargeSummary summary = new DischargeSummary(location, properties);
-		final Message outputMessage = exchange.getOut();
-		outputMessage.setBody(summary);
-		outputMessage.setHeader(Exchange.FILE_NAME, inputMessage.getHeader(Exchange.FILE_NAME));
+		try {
+			final Map<String, Object> properties = parser.parseDocument(body);
+			LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
+			
+			final DischargeSummary summary = new DischargeSummary(location, properties);
+			final Message outputMessage = exchange.getOut();
+			outputMessage.setBody(summary);
+			outputMessage.setHeader(Exchange.FILE_NAME, inputMessage.getHeader(Exchange.FILE_NAME));
+		} finally {
+			Closeables.closeQuietly(body);
+		}
 	}
 }

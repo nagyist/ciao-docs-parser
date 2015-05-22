@@ -8,6 +8,8 @@
 	   <property name="properties" ref="ciaoProperties" />
 	</bean>
 	
+	<import resource="classpath:/uk/nhs/itk/ciao/toc/repositories/${repositoryType}.xml"/>
+	
 	<bean id="tikaParser" class="uk.nhs.itk.ciao.toc.TikaParserFactory" factory-method="createParser" />
     <bean id="dischargeNotificationExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
  	<bean id="edDischargeExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />

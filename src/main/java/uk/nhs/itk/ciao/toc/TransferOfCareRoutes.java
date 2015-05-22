@@ -33,14 +33,20 @@ public class TransferOfCareRoutes extends CIPRoutes {
 		private final String inputFolder;
 		private final String processorId;
 		private final String outputFolder;
+		private final String completedFolder;
 		private final String errorFolder;
+		private final String idempotentRepositoryId;
+		private final String inProgressRepositoryId;
 		
 		public ParseDocumentRouteBuilder(final String name, final Properties ciaoProperties) {
 			this.name = name;
 			this.inputFolder = findProperty(ciaoProperties, "inputFolder");
-			this.processorId = findProperty(ciaoProperties, "processorId");;
-			this.outputFolder = findProperty(ciaoProperties, "outputFolder");;
-			this.errorFolder = findProperty(ciaoProperties, "errorFolder");;
+			this.processorId = findProperty(ciaoProperties, "processorId");
+			this.outputFolder = findProperty(ciaoProperties, "outputFolder");
+			this.completedFolder = findProperty(ciaoProperties, "completedFolder");			
+			this.errorFolder = findProperty(ciaoProperties, "errorFolder");
+			this.idempotentRepositoryId = findProperty(ciaoProperties, "idempotentRepositoryId");
+			this.inProgressRepositoryId = findProperty(ciaoProperties, "inProgressRepositoryId");
 		}
 		
 		private String findProperty(final Properties ciaoProperties, final String propertyName) {
@@ -57,9 +63,16 @@ public class TransferOfCareRoutes extends CIPRoutes {
 			
 			return property;
 		}
-		
+
+		@SuppressWarnings("deprecation")
 		public void configure() {
-			from("file://" + inputFolder + "?noop=true").id("parse-document-" + name)
+			from("file://" + inputFolder + "?idempotent=true&" +
+					"idempotentRepository=#" + idempotentRepositoryId + "&" +
+					"inProgressRepository=#" + inProgressRepositoryId + "&" +
+					"readLock=idempotent&" +
+					"move=" + completedFolder + "/${date:now:yyyy/MM/dd/HHmmSS}-${file:name}&" +
+					"moveFailed=" + errorFolder + "/${date:now:yyyy/MM/dd/HHmmSS}-${file:name}")
+			.id("parse-document-" + name)
 			.streamCaching()
 			.doTry()
 				.processRef(processorId)				
@@ -68,11 +81,11 @@ public class TransferOfCareRoutes extends CIPRoutes {
 				.to("file://" + outputFolder + "?fileName=${file:name.noext}.json")
 			.doCatch(UnsupportedDocumentTypeException.class)
 				.log(LoggingLevel.INFO, LOGGER, "Unsupported document type: ${file:name}")
-				.to("file://" + errorFolder)
+				.handled(false)
 			.doCatch(Exception.class)
 				.log(LoggingLevel.ERROR, LOGGER, "Exception while processing document: ${file:name}")
 				.to("log:uk.nhs.itk.ciao.toc.TransferOfCareRoutes?level=ERROR&showCaughtException=true")
-				.to("file://" + errorFolder);
+				.handled(false);
 		}
 	}
 }

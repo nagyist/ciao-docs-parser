@@ -12,10 +12,11 @@
     
     <activemq.version>5.11.1</activemq.version>
     <camel.version>2.13.4</camel.version> <!-- last version to run against 1.6 -->
-    <tika.version>1.8</tika.version>
+    <guava.version>18.0</guava.version>
 	<junit.version>4.12</junit.version>
     <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.12</slf4j.version>
+    <tika.version>1.8</tika.version>
   </properties>
 
   <dependencies>
@@ -47,6 +48,12 @@
 			<artifactId>camel-jetty</artifactId>
 	  	</exclusion>
 	  </exclusions>
+	</dependency>
+	
+	<dependency>
+		<groupId>com.google.guava</groupId>
+		<artifactId>guava</artifactId>
+		<version>${guava.version}</version>
 	</dependency>
   
     <dependency>
