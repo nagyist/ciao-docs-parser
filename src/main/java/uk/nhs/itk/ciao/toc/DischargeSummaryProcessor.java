@@ -1,23 +1,38 @@
 package uk.nhs.itk.ciao.toc;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class DischargeSummaryProcessor implements Processor {
-	private final DischargeSummaryReader<?> reader;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DischargeSummaryProcessor.class);
 	
-	public DischargeSummaryProcessor(final DischargeSummaryReader<?> reader) {
-		this.reader = Preconditions.checkNotNull(reader);
+	private final DocumentParser parser;
+	
+	public DischargeSummaryProcessor(final DocumentParser parser) {
+		this.parser = Preconditions.checkNotNull(parser);
 	}
 	
 	@Override
 	public void process(final Exchange exchange) throws Exception {
-		final InputStream in = exchange.getIn().getBody(InputStream.class);
-		final Object result = reader.readDocument(in);
-		exchange.getIn().setBody(result);
+		LOGGER.debug("process: {}", exchange);
+		final Message inputMessage = exchange.getIn();
+		final String location = inputMessage.getHeader(Exchange.FILE_PATH, String.class);
+		final InputStream body = inputMessage.getBody(InputStream.class);
+		
+		final Map<String, Object> properties = parser.parseDocument(body);
+		LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
+		
+		final DischargeSummary summary = new DischargeSummary(location, properties);
+		final Message outputMessage = exchange.getOut();
+		outputMessage.setBody(summary);
+		outputMessage.setHeader(Exchange.FILE_NAME, inputMessage.getHeader(Exchange.FILE_NAME));
 	}
 }
