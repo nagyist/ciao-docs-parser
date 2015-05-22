@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	
+	<bean id="tikaParser" class="uk.nhs.itk.ciao.toc.TikaParserFactory" factory-method="createParser" />
+    <bean id="dischargeNotificationExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
+ 	<bean id="edDischargeExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />
+    
+    <bean id="dischargeNotificationProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
+    	<constructor-arg>
+    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
+    			<constructor-arg ref="tikaParser" />
+    			<constructor-arg ref="dischargeNotificationExtractor" />
+    		</bean>
+    	</constructor-arg>
+    </bean>
+    
+    <bean id="edDischargeProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
+    	<constructor-arg>
+    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
+    			<constructor-arg ref="tikaParser" />
+    			<constructor-arg ref="edDischargeExtractor" />
+    		</bean>
+    	</constructor-arg>
+    </bean>
+    
+    <bean id="autoDetectProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
+    	<constructor-arg>
+    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
+    			<constructor-arg ref="tikaParser" />
+    			<constructor-arg>
+    				<bean class="uk.nhs.itk.ciao.toc.MultiPropertiesExtractor">
+    					<constructor-arg>
+		    				<array value-type="uk.nhs.itk.ciao.toc.PropertiesExtractor">
+		    					<ref bean="dischargeNotificationExtractor"/>
+		    					<ref bean="edDischargeExtractor"/>
+		    				</array>
+	    				</constructor-arg>
+	    			</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
+    </bean>
+	
+</beans>

@@ -8,47 +8,9 @@
 	   <property name="properties" ref="ciaoProperties" />
 	</bean>
 	
-	<import resource="classpath:/uk/nhs/itk/ciao/toc/repositories/${repositoryType}.xml"/>
-	
-	<bean id="tikaParser" class="uk.nhs.itk.ciao.toc.TikaParserFactory" factory-method="createParser" />
-    <bean id="dischargeNotificationExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
- 	<bean id="edDischargeExtractor" class="uk.nhs.itk.ciao.toc.PropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />
-    
-    <bean id="dischargeNotificationProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
-    	<constructor-arg>
-    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
-    			<constructor-arg ref="tikaParser" />
-    			<constructor-arg ref="dischargeNotificationExtractor" />
-    		</bean>
-    	</constructor-arg>
-    </bean>
-    
-    <bean id="edDischargeProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
-    	<constructor-arg>
-    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
-    			<constructor-arg ref="tikaParser" />
-    			<constructor-arg ref="edDischargeExtractor" />
-    		</bean>
-    	</constructor-arg>
-    </bean>
-    
-    <bean id="autoDetectProcessor" class="uk.nhs.itk.ciao.toc.DischargeSummaryProcessor">
-    	<constructor-arg>
-    		<bean class="uk.nhs.itk.ciao.toc.TikaDocumentParser">
-    			<constructor-arg ref="tikaParser" />
-    			<constructor-arg>
-    				<bean class="uk.nhs.itk.ciao.toc.MultiPropertiesExtractor">
-    					<constructor-arg>
-		    				<array value-type="uk.nhs.itk.ciao.toc.PropertiesExtractor">
-		    					<ref bean="dischargeNotificationExtractor"/>
-		    					<ref bean="edDischargeExtractor"/>
-		    				</array>
-	    				</constructor-arg>
-	    			</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    </bean>
+	<!-- Select 'dynamic' spring imports - determined via CIAO properties -->
+	<import resource="processors/${processorConfig}.xml"/>
+	<import resource="repositories/${repositoryConfig}.xml"/>
     
 	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel">
 		<package>uk.nhs.itk.ciao.toc</package>
