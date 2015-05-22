@@ -2,10 +2,13 @@ package uk.nhs.itk.ciao.camel;
 
 import org.apache.camel.spring.Main;
 import org.apache.camel.util.IOHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import uk.nhs.itk.ciao.configuration.CIAOConfig;
 import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.itk.ciao.properties.CIAOConfigFactory;
 import uk.nhs.itk.ciao.spring.CiaoParentApplicationContextFactory;
 
 /**
@@ -21,7 +24,27 @@ import uk.nhs.itk.ciao.spring.CiaoParentApplicationContextFactory;
  * @see #startApplication(CIAOConfig, String...)
  */
 public class CamelApplication extends Main {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CamelApplication.class);
+	
 	private static CamelApplication instance;
+	
+	/**
+	 * Starts a new camel application using the specified default configuration
+	 * from the classpath
+	 * 
+	 * @param defaultConfigPath The location of the default configuration properties
+	 * 			on the classpath
+	 * @param args The application arguments
+	 * @throws Exception If the application could not be started
+	 * @see CIAOConfigFactory
+	 */
+	public static CamelApplication startApplication(final String defaultConfigPath, final String... args) throws Exception {
+		final CIAOConfig config = CIAOConfigFactory.getCIAOConfigFromClasspath(defaultConfigPath, args);
+		LOGGER.info("Initialised CIP configuration");
+		LOGGER.info("CIP config values: {}", config);
+		
+		return startApplication(config, args);
+	}
 	
 	/**
 	 * Starts a new camel application
@@ -34,11 +57,9 @@ public class CamelApplication extends Main {
         final CamelApplication application = new CamelApplication(config);
         Main.instance = application;
         instance = application;
-        //application.enableHangupSupport();
+        application.enableHangupSupport();
         application.run(args);
-        
-        // TODO: Remove this!
-        Thread.sleep(50000);
+
         return application;
     }
 	
