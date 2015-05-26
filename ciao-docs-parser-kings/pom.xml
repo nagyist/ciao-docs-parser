@@ -53,7 +53,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>uk.nhs.ciao.docs.parser.kings.KingDischargeSummaryParser</mainClass>
+							<mainClass>uk.nhs.ciao.docs.parser.kings.KingsDischargeSummaryParser</mainClass>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 						</manifest>
