@@ -10,8 +10,8 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.env.PropertySource;
 
-import uk.nhs.itk.ciao.configuration.CIAOConfig;
-import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.ciao.configuration.CIAOConfig;
+import uk.nhs.ciao.exceptions.CIAOConfigurationException;
 
 /**
  * A factory to create parent application contexts for a CIAO spring application.

@@ -9,8 +9,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import uk.nhs.itk.ciao.configuration.CIAOConfig;
-import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.ciao.configuration.CIAOConfig;
+import uk.nhs.ciao.exceptions.CIAOConfigurationException;
 
 /**
  * A factory to initialise CIAOConfig from a set of default properties

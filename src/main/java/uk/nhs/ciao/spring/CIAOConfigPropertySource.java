@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.EnumerablePropertySource;
 
-import uk.nhs.itk.ciao.configuration.CIAOConfig;
-import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.ciao.configuration.CIAOConfig;
+import uk.nhs.ciao.exceptions.CIAOConfigurationException;
 
 /**
  * An adaptor to view a {@link CIAOConfig} instance as a spring

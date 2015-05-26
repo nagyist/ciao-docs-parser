@@ -5,11 +5,11 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.nhs.ciao.CIPRoutes;
 import uk.nhs.ciao.camel.CamelApplication;
+import uk.nhs.ciao.configuration.CIAOConfig;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
-import uk.nhs.itk.ciao.CIPRoutes;
-import uk.nhs.itk.ciao.configuration.CIAOConfig;
-import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.ciao.exceptions.CIAOConfigurationException;
 
 public class DocumentParserRoutes extends CIPRoutes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserRoutes.class);
