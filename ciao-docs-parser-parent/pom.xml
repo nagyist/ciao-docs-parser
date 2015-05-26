@@ -89,13 +89,6 @@
 				<groupId>uk.nhs.interoperability</groupId>
 				<artifactId>ciao-core</artifactId>
 				<version>${ciao.core.version}</version>
-
-				<exclusions>
-					<exclusion>
-						<groupId>org.apache.camel</groupId>
-						<artifactId>camel-jetty</artifactId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 
 			<!-- For parsing API -->
