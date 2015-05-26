@@ -1,4 +1,4 @@
-package uk.nhs.itk.ciao.properties;
+package uk.nhs.ciao.properties;
 
 import java.io.IOException;
 import java.util.Properties;

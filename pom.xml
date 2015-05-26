@@ -98,7 +98,7 @@
 		  <artifactId>camel-maven-plugin</artifactId>
 		  <version>${camel.version}</version>
 		  <configuration>
-		    <mainClass>uk.nhs.itk.ciao.toc.Main</mainClass>
+		    <mainClass>uk.nhs.ciao.docs.parser.Main</mainClass>
 		  </configuration>
 	  </plugin>
     </plugins>

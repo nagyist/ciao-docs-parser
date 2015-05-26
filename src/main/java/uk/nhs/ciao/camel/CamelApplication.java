@@ -1,4 +1,4 @@
-package uk.nhs.itk.ciao.camel;
+package uk.nhs.ciao.camel;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.spi.Registry;
@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 
+import uk.nhs.ciao.properties.CIAOConfigFactory;
+import uk.nhs.ciao.spring.CiaoParentApplicationContextFactory;
 import uk.nhs.itk.ciao.configuration.CIAOConfig;
 import uk.nhs.itk.ciao.exceptions.CIAOConfigurationException;
-import uk.nhs.itk.ciao.properties.CIAOConfigFactory;
-import uk.nhs.itk.ciao.spring.CiaoParentApplicationContextFactory;
 
 /**
  * A CIAO camel application

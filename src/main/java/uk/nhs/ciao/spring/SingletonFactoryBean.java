@@ -1,4 +1,4 @@
-package uk.nhs.itk.ciao.spring;
+package uk.nhs.ciao.spring;
 
 import org.springframework.beans.factory.FactoryBean;
 
