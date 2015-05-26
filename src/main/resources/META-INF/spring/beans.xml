@@ -13,6 +13,6 @@
 	<import resource="repositories/${repositoryConfig}.xml"/>
     
 	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel">
-		<package>uk.nhs.itk.ciao.toc</package>
+		<package>uk.nhs.ciao.docs.parser</package>
 	</camelContext>
 </beans>
