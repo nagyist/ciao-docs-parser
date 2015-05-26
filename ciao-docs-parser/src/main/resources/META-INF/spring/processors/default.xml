@@ -4,8 +4,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 	
 	<bean id="tikaParser" class="uk.nhs.ciao.docs.parser.TikaParserFactory" factory-method="createParser" />
-    <bean id="dischargeNotificationExtractor" class="uk.nhs.ciao.docs.parser.PropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
- 	<bean id="edDischargeExtractor" class="uk.nhs.ciao.docs.parser.PropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />
+    <bean id="dischargeNotificationExtractor" class="uk.nhs.ciao.docs.parser.kings.KingsPropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
+ 	<bean id="edDischargeExtractor" class="uk.nhs.ciao.docs.parser.kings.KingsPropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />
     
     <bean id="dischargeNotificationProcessor" class="uk.nhs.ciao.docs.parser.DocumentParserProcessor">
     	<constructor-arg>

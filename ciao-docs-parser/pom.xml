@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+  	<groupId>uk.nhs.ciao</groupId>
+    <artifactId>ciao-docs-parser-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../ciao-docs-parser-parent/pom.xml</relativePath>
+  </parent>
+  
+  <artifactId>ciao-docs-parser</artifactId>
+  <packaging>jar</packaging>
+
+  <dependencies>
+  	<dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>ciao-docs-parser-core</artifactId>
+	</dependency>
+	
+	<dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>ciao-docs-parser-kings</artifactId>
+	</dependency>
+  	
+  	<dependency>
+	  <groupId>uk.nhs.interoperability</groupId>
+	  <artifactId>ciao-core</artifactId>
+	</dependency>
+  
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jackson</artifactId>
+    </dependency>
+
+    <!-- testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+		  <groupId>org.apache.camel</groupId>
+		  <artifactId>camel-maven-plugin</artifactId>
+		  <configuration>
+		    <mainClass>uk.nhs.ciao.docs.parser.Main</mainClass>
+		  </configuration>
+	  </plugin>
+    </plugins>
+  </build>
+</project>
