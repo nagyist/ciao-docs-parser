@@ -61,7 +61,7 @@
 		  <groupId>org.apache.camel</groupId>
 		  <artifactId>camel-maven-plugin</artifactId>
 		  <configuration>
-		    <mainClass>uk.nhs.ciao.docs.parser.Main</mainClass>
+		    <mainClass>uk.nhs.ciao.docs.parser.DocumentParserApplication</mainClass>
 		  </configuration>
 	  </plugin>
     </plugins>
