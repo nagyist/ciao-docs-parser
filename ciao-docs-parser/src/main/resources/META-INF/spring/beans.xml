@@ -13,7 +13,11 @@
 	<import resource="repositories/${repositoryConfig}.xml"/>
 	<import resource="messaging/${messagingConfig}.xml"/>
     
-	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel">
-		<package>uk.nhs.ciao.docs.parser</package>
+	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel" trace="true" streamCache="true">
+		<properties>
+			<property key="CamelLogDebugStreams" value="true" />
+		</properties>
+		
+		<package>uk.nhs.ciao.docs.parser</package>		
 	</camelContext>
 </beans>
