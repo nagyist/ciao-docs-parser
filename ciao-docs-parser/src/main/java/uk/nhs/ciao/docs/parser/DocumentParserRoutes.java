@@ -1,5 +1,6 @@
 package uk.nhs.ciao.docs.parser;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import uk.nhs.ciao.exceptions.CIAOConfigurationException;
 
 public class DocumentParserRoutes extends CIPRoutes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserRoutes.class);
-	private static final String ROOT_PROPERTY = "parseDocumentRoutes";
+	private static final String ROOT_PROPERTY = "documentParserRoutes";
 	
 	@Override
 	public void configure() {
@@ -37,7 +38,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 		private final String name;
 		private final String inputFolder;
 		private final String processorId;
-		private final String outputFolder;
+		private final String outputQueue;
 		private final String completedFolder;
 		private final String errorFolder;
 		private final String idempotentRepositoryId;
@@ -47,7 +48,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 			this.name = name;
 			this.inputFolder = findProperty(config, "inputFolder");
 			this.processorId = findProperty(config, "processorId");
-			this.outputFolder = findProperty(config, "outputFolder");
+			this.outputQueue = findProperty(config, "outputQueue");
 			this.completedFolder = findProperty(config, "completedFolder");			
 			this.errorFolder = findProperty(config, "errorFolder");
 			this.idempotentRepositoryId = findProperty(config, "idempotentRepositoryId");
@@ -77,15 +78,16 @@ public class DocumentParserRoutes extends CIPRoutes {
 					"idempotentRepository=#" + idempotentRepositoryId + "&" +
 					"inProgressRepository=#" + inProgressRepositoryId + "&" +
 					"readLock=idempotent&" +
-					"move=" + completedFolder + "/${date:now:yyyy/MM/dd/HHmmSS}-${file:name}&" +
-					"moveFailed=" + errorFolder + "/${date:now:yyyy/MM/dd/HHmmSS}-${file:name}")
+					"move=" + completedFolder + "/${date:now:yyyy/MM/dd/HH-mm-SS}-${file:name}&" +
+					"moveFailed=" + errorFolder + "/${date:now:yyyy/MM/dd/HH-mm-SS}-${file:name}")
 			.id("parse-document-" + name)
 			.streamCaching()
 			.doTry()
 				.processRef(processorId)				
 				.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
 				.marshal().json(JsonLibrary.Jackson)
-				.to("file://" + outputFolder + "?fileName=${file:name.noext}.json")
+				.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
+				.to("jms:queue:" + outputQueue)
 			.doCatch(UnsupportedDocumentTypeException.class)
 				.log(LoggingLevel.INFO, LOGGER, "Unsupported document type: ${file:name}")
 				.handled(false)

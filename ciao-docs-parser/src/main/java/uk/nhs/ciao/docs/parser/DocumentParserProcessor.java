@@ -1,5 +1,6 @@
 package uk.nhs.ciao.docs.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -26,21 +27,28 @@ public class DocumentParserProcessor implements Processor {
 	@Override
 	public void process(final Exchange exchange) throws Exception {
 		LOGGER.debug("process: {}", exchange);
-		final Message inputMessage = exchange.getIn();
-		// TODO: There is a hidden dependency on the input document coming from a file (rather than say an email or message etc)
-		final String originalDocumentLocation = inputMessage.getHeader(Exchange.FILE_PATH, String.class);
-		final InputStream body = inputMessage.getBody(InputStream.class);
+		
+		final OriginalDocument originalDocument = getOriginalDocument(exchange);		
+		final InputStream inputStream = new ByteArrayInputStream(originalDocument.getBody());
 		
 		try {
-			final Map<String, Object> properties = parser.parseDocument(body);
+			final Map<String, Object> properties = parser.parseDocument(inputStream);
 			LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
 			
-			final ParsedDocument summary = new ParsedDocument(originalDocumentLocation, properties);
 			final Message outputMessage = exchange.getOut();
-			outputMessage.setBody(summary);
-			outputMessage.setHeader(Exchange.FILE_NAME, inputMessage.getHeader(Exchange.FILE_NAME));
+			final ParsedDocument parsedDocument = new ParsedDocument(originalDocument, properties);
+			outputMessage.setBody(parsedDocument);
+			outputMessage.setHeader(Exchange.FILE_NAME, originalDocument.getName());
 		} finally {
-			Closeables.closeQuietly(body);
+			Closeables.closeQuietly(inputStream);
 		}
+	}
+	
+	private OriginalDocument getOriginalDocument(final Exchange exchange) {
+		final Message inputMessage = exchange.getIn();
+		final String name = inputMessage.getHeader(Exchange.FILE_NAME, String.class);
+		final byte[] body = inputMessage.getBody(byte[].class);
+		
+		return new OriginalDocument(name, body);
 	}
 }

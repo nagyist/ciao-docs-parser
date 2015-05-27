@@ -96,6 +96,10 @@ public final class MultiDocumentParser implements DocumentParser {
 	 * This allows the input stream content to be read multiple times.
 	 */
 	private ByteArrayInputStream cacheInputStream(final InputStream in) throws IOException {
+		if (in instanceof ByteArrayInputStream) {
+			return (ByteArrayInputStream)in;
+		}
+		
 		final byte[] bytes = ByteStreams.toByteArray(in);
 		return new ByteArrayInputStream(bytes);
 	}

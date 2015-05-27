@@ -11,6 +11,7 @@
 	<!-- Select 'dynamic' spring imports - determined via CIAO properties -->
 	<import resource="processors/${processorConfig}.xml"/>
 	<import resource="repositories/${repositoryConfig}.xml"/>
+	<import resource="messaging/${messagingConfig}.xml"/>
     
 	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel">
 		<package>uk.nhs.ciao.docs.parser</package>
