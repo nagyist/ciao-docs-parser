@@ -10,17 +10,27 @@ import org.apache.tika.parser.pdf.PDFParserConfig;
 /**
  * Constructs and configures Tika parsers
  */
-public class TikaParserFactory {
+public final class TikaParserFactory {
 	private static final MediaType APPLICATION_PDF = MediaType.application("pdf");
 	
 	private TikaParserFactory() {
 		// Suppress default constructor
 	}
 	
+	/**
+	 * Creates a new parser using the default configuration
+	 */
 	public static Parser createParser() {
 		return new AutoDetectParser(createDefaultParser());
 	}
 	
+	/**
+	 * Creates a new default parser using the default configuration.
+	 * <p>
+	 * In particular, a PDFBox parser is added and configured.
+	 * 
+	 * @see #configurePdfParser(PDFParser)
+	 */
 	public static DefaultParser createDefaultParser() {
 		final DefaultParser defaultParser = new DefaultParser();
 		
@@ -40,12 +50,31 @@ public class TikaParserFactory {
 		return defaultParser;
 	}
 	
+	/**
+	 * Creates and configures a new PDFBox parser
+	 * 
+	 * @see #configurePdfParser(PDFParser)
+	 */
 	public static PDFParser createPdfParser() {
 		final PDFParser pdfParser = new PDFParser();
 		configurePdfParser(pdfParser);
 		return pdfParser;
 	}
 	
+	/**
+	 * Configures the specified PDFBox parser so that:
+	 * <ul>
+	 * <li>{@link PDFParserConfig#getSortByPosition() is enabled</li>
+	 * </ul>
+	 * <p>
+	 * A pdf document does not contain structure elements like paragraphs, tables,
+	 * headers etc that other documents may have. Enabling the sort by position
+	 * algorithm alters the Tika XHTML output so that the text flows in a guaranteed
+	 * order from left to right.
+	 *
+	 * @param pdfParser The parser to configure
+	 * @see PDFParserConfig
+	 */
 	public static void configurePdfParser(final PDFParser pdfParser) {
 		final PDFParserConfig parserConfig = pdfParser.getPDFParserConfig();
 		parserConfig.setSortByPosition(true);

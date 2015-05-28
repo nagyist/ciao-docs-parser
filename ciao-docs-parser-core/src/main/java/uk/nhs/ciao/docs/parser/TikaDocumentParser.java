@@ -2,10 +2,7 @@ package uk.nhs.ciao.docs.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Deque;
 import java.util.Map;
-import java.util.Queue;
-import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,190 +12,80 @@ import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
- * A {@link DischargeSummaryReader} backed by Apache Tika.
+ * A {@link DocumentParser} backed by Apache Tika.
  * <p>
  * The documents are first parsed by Tika (using the configured parser) and
  * converted to an XHTML DOM representation. Next a map of key/value properties
- * are extracted from the dom and returned.
+ * are extracted from the DOM and returned.
  * <p>
- * Whitespace text nodes are normalized in the intermediate document
+ * Whitespace text nodes are normalised in the intermediate document
  */
 public class TikaDocumentParser implements DocumentParser {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TikaDocumentParser.class);
 	private final Parser parser;
 	private final PropertiesExtractor<Document> propertiesExtractor;
-	private final DocumentBuilder documentBuilder;
+	private final SAXContentToDOMHandler handler;
 	
+	/**
+	 * Creates a new document parser backed by the specified Tika parser and
+	 * properties extractor.
+	 */
 	public TikaDocumentParser(final Parser parser, final PropertiesExtractor<Document> propertiesExtractor)
 			throws ParserConfigurationException {
 		this.parser = Preconditions.checkNotNull(parser);
 		this.propertiesExtractor = Preconditions.checkNotNull(propertiesExtractor);
-		this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		this.handler = createHandler();
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * First Tika is used to interpret the input stream, then the configured property
+	 * extractor is used to find properties with the interpreted document text.
+	 */
 	@Override
 	public Map<String, Object> parseDocument(final InputStream in)
 			throws UnsupportedDocumentTypeException, IOException {
-		final Document document = convertToDom(in);
+		final Document document = parseToDom(in);
 		return propertiesExtractor.extractProperties(document);
 	}
 
-	private Document convertToDom(final InputStream in) throws IOException {
-		final DocumentContentHandler handler = new DocumentContentHandler();
-		
+	/**
+	 * Parses the input document via Tika, converting the output XHTML into a DOM
+	 * representation
+	 */
+	private Document parseToDom(final InputStream in) throws IOException {
 		try {
-			parser.parse(in, handler, handler.metadata, handler.context);
-			return handler.document;
+			final Metadata metadata = new Metadata();
+			final ParseContext context = new ParseContext();
+			parser.parse(in, handler, metadata, context);
+			
+			return handler.getDocument();
 		} catch (SAXException e) {
 			throw new IOException(e);
 		} catch (TikaException e) {
 			throw new IOException(e);
+		} finally {
+			handler.clear();
 		}
 	}
 	
 	/**
-	 * SAX content handler to convert the content to a DOM and
-	 * normalize any whitespace nodes
-	 *
+	 * Creates a new handler to converter SAX content to DOM.
+	 * <p>
+	 * Whitespace normalisation will be performed on documents created by the handler.
 	 */
-	private class DocumentContentHandler implements ContentHandler {
-		final Metadata metadata = new Metadata();
-		final ParseContext context = new ParseContext();
+	private static SAXContentToDOMHandler createHandler() throws ParserConfigurationException {
+		final DocumentBuilder documentBuilder= DocumentBuilderFactory.newInstance()
+				.newDocumentBuilder();		
+		final boolean whitespaceNormalisationEnabled = true;
 		
-		private org.w3c.dom.Document document;
-		private Deque<Element> elements;
-
-		@Override
-		public void setDocumentLocator(final Locator locator) {
-			LOGGER.trace("setDocumentLocator: {}", locator);
-		}
-
-		@Override
-		public void startDocument() throws SAXException {
-			LOGGER.trace("startDocument: ");
-			
-			try {
-				document = documentBuilder.newDocument();
-				elements = Lists.newLinkedList();
-			} catch (Exception e) {
-				throw new SAXException(e);
-			}
-		}
-
-		@Override
-		public void endDocument() throws SAXException {
-			LOGGER.trace("endDocument: ");
-			
-			elements.clear();
-			
-			document.normalizeDocument();
-			
-			final Queue<Node> queue = Lists.newLinkedList();
-			queue.add(document.getDocumentElement());
-			while (!queue.isEmpty()) {
-				final Node node = queue.remove();
-				final NodeList children = node.getChildNodes();
-				for (int index = 0; index < children.getLength(); index++) {
-					queue.add(children.item(index));
-				}
-				
-				if (node.getNodeType() == Node.TEXT_NODE) {
-					node.setTextContent(node.getTextContent().trim());
-					if (node.getTextContent().isEmpty()) {
-						node.getParentNode().removeChild(node);
-					}
-				}
-			}
-		}
-
-		@Override
-		public void startPrefixMapping(final String prefix, final String uri)
-				throws SAXException {
-			LOGGER.trace("startPrefixMapping: {}, {}", prefix, uri);
-		}
-
-		@Override
-		public void endPrefixMapping(final String prefix) throws SAXException {
-			LOGGER.trace("endPrefixMapping: {}", prefix);
-		}
-
-		@Override
-		public void startElement(final String uri, final String localName, final String qName,
-				final Attributes atts) throws SAXException {
-			final Map<String, String> attributeMap = toMap(atts);
-			LOGGER.trace("startElement: {}, {}", localName, attributeMap);
-			
-			final Element element = document.createElement(localName);
-			if (elements.isEmpty()) {
-				document.appendChild(element);				
-			} else {
-				elements.getLast().appendChild(element);
-			}
-			elements.add(element);
-			
-			for (final Entry<String, String> attribute: attributeMap.entrySet()) {
-				element.setAttribute(attribute.getKey(), attribute.getValue());
-			}
-		}
-
-		@Override
-		public void endElement(final String uri, final String localName, final String qName)
-				throws SAXException {
-			LOGGER.trace("endElement: {}", localName);
-			elements.removeLast();	
-		}
-
-		@Override
-		public void characters(final char[] ch, final int start, final int length)
-				throws SAXException {
-			LOGGER.trace("characters: {}", new String(ch, start, length));
-			
-			elements.getLast().appendChild(document.createTextNode(new String(ch, start, length)));
-		}
-
-		@Override
-		public void ignorableWhitespace(final char[] ch, final int start, final int length)
-				throws SAXException {
-			LOGGER.trace("ignorableWhitespace: {}", length);
-			
-			elements.getLast().appendChild(document.createTextNode(new String(ch, start, length)));
-		}
-
-		@Override
-		public void processingInstruction(final String target, final String data)
-				throws SAXException {
-			LOGGER.trace("processingInstruction: {}, {}", target, data);
-		}
-
-		@Override
-		public void skippedEntity(final String name) throws SAXException {
-			LOGGER.trace("skippedEntity: {}", name);
-		}
-		
-		private Map<String, String> toMap(final Attributes atts) {
-			final Map<String, String> values = Maps.newLinkedHashMap();
-			
-			for (int index = 0; index < atts.getLength(); index++) {
-				values.put(atts.getLocalName(index), atts.getValue(index));
-			}
-			
-			return values;
-		}
+		return new SAXContentToDOMHandler(documentBuilder,
+				whitespaceNormalisationEnabled);
 	}
 }
