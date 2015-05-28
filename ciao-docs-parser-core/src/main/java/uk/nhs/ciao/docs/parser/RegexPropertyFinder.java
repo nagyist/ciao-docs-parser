@@ -80,10 +80,10 @@ public class RegexPropertyFinder {
 		}
 		
 		/**
-		 * Specified the initial token to search for
+		 * Specifies the initial token to search for
 		 */
 		public Builder from(final String startLiteral) {
-			this.startLiteral = Preconditions.checkNotNull(startLiteral);
+			setStartLiteral(startLiteral);
 			return this;
 		}
 		
@@ -91,15 +91,21 @@ public class RegexPropertyFinder {
 		 * Specifies the ending token to search for
 		 */
 		public Builder to(final String endLiteral) {
-			this.endLiteral = endLiteral;
+			setEndLiteral(endLiteral);
 			return this;
 		}
 		
+		/**
+		 * Specifies the initial token to search for
+		 */
 		// bean setter for spring
 		public void setStartLiteral(final String startLiteral) {
-			this.startLiteral = startLiteral;
+			this.startLiteral = Preconditions.checkNotNull(startLiteral);
 		}
 		
+		/**
+		 * Specifies the ending token to search for
+		 */
 		// bean setter for spring
 		public void setEndLiteral(final String endLiteral) {
 			this.endLiteral = endLiteral;
