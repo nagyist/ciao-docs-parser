@@ -57,17 +57,30 @@ public final class MultiDocumentParser implements DocumentParser {
 	
 	@Override
 	public Map<String, Object> parseDocument(final InputStream in) throws UnsupportedDocumentTypeException, IOException {
+		final Map<String, Object> properties;
+		
 		if (parsers.isEmpty()) {
 			throw new UnsupportedDocumentTypeException("No parsers are available");
 		} else if (parsers.size() == 1) {
-			final DocumentParser parser = parsers.iterator().next();
-			return parser.parseDocument(in);
+			properties = parseDocumentWithSingleParser(in);
+		} else {
+			properties = parseDocumentWithMultipleParsers(in);
 		}
 		
+		return properties;
+	}
+	
+	private Map<String, Object> parseDocumentWithSingleParser(final InputStream in)
+			throws UnsupportedDocumentTypeException, IOException {
+		final DocumentParser parser = parsers.iterator().next();
+		return parser.parseDocument(in);
+	}
+	
+	private Map<String, Object> parseDocumentWithMultipleParsers(final InputStream in)
+			throws UnsupportedDocumentTypeException, IOException {
 		// cache the input stream (multiple reads may be required)
 		final ByteArrayInputStream cachedInputStream = cacheInputStream(in);
 		
-		boolean onlyThrewUnsupportedDocumentType = true;
 		final List<Exception> suppressedExceptions = Lists.newArrayList();
 		for (final DocumentParser parser: parsers) {
 			try {
@@ -78,12 +91,11 @@ public final class MultiDocumentParser implements DocumentParser {
 				suppressedExceptions.add(e);				
 			} catch (final Exception e) {
 				LOGGER.trace("Parser {} failed to parse the document", parser, e);
-				onlyThrewUnsupportedDocumentType = false;
 				suppressedExceptions.add(e);
 			}
 		}
-
-		if (onlyThrewUnsupportedDocumentType) {
+		
+		if (onlyThrewUnsupportedDocumentType(suppressedExceptions)) {
 			throw new UnsupportedDocumentTypeException("No parsers support the type of document");
 		} else {
 			throw new MultiCauseIOException("All parsers failed to parse the document", suppressedExceptions);
@@ -102,5 +114,15 @@ public final class MultiDocumentParser implements DocumentParser {
 		
 		final byte[] bytes = ByteStreams.toByteArray(in);
 		return new ByteArrayInputStream(bytes);
+	}
+	
+	private boolean onlyThrewUnsupportedDocumentType(final List<Exception> suppressedExceptions) {
+		for (final Exception exception: suppressedExceptions) {
+			if (!(exception instanceof UnsupportedDocumentTypeException)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }

@@ -1,10 +1,8 @@
 package uk.nhs.ciao.io;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
-
-import com.google.common.collect.Lists;
 
 /**
  * IOException with multiple causes.
@@ -14,19 +12,23 @@ import com.google.common.collect.Lists;
 public class MultiCauseIOException extends IOException {
 	private static final long serialVersionUID = -8167162583826676106L;
 	
-	private final List<Exception> causes;
+	private final Exception[] causes;
+	
 	public MultiCauseIOException(final String message, final List<? extends Exception> causes) {
 		super(message);
 		
 		if (causes.size() == 1) {
 			initCause(causes.get(1));
-			this.causes = Collections.emptyList();
+			this.causes = new Exception[0];
 		} else {
-			this.causes = Lists.newArrayList(causes);
+			this.causes = causes.toArray(new Exception[causes.size()]);
 		}
 	}
 	
-	public List<Exception> getCauses() {
-		return Collections.unmodifiableList(causes);
+	/**
+	 * The multiple causes associated with this exception
+	 */
+	public Exception[] getCauses() {
+		return Arrays.copyOf(causes, causes.length);
 	}
 }

@@ -31,7 +31,7 @@ import com.google.common.base.Preconditions;
 public class KingsDischargeSummaryParser implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(KingsDischargeSummaryParser.class);
 	
-	public static void main(final String[] args) {
+	public static void main(final String[] args) throws Exception {
 		final ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("/uk/nhs/ciao/docs/parser/kings/beans.xml");
 		
 		try {
@@ -40,9 +40,6 @@ public class KingsDischargeSummaryParser implements Runnable {
 			} else {
 				runConsoleApp(applicationContext, args);
 			}
-		} catch (Throwable e) {
-			LOGGER.error("Exception while running parser", e);
-			System.exit(-1);
 		} finally {
 			applicationContext.close();
 		}
@@ -161,31 +158,40 @@ public class KingsDischargeSummaryParser implements Runnable {
 		
 		boolean parsedFile = false;
 		InputStream in = null;
-		OutputStream out = null;
+		
 		try {			
 			in = new FileInputStream(file);
 			final Map<String, Object> properties = documentParser.parseDocument(in);
-
+			
 			final String filename = getBaseName(file) + ".txt";
 			final File outputFile = new File(outputFolder, filename);				
-			try {					
-				out = new FileOutputStream(outputFile);
-				objectMapper.writeValue(out, properties);
-				out.flush();
-				parsedFile = true;
-			} catch (IOException e) {
-				LOGGER.warn("Unable to write to output file {}", outputFile);
-			}				
+			writeJsonPropertiesToFile(outputFile, properties);
 		} catch (UnsupportedDocumentTypeException e) {
 			LOGGER.warn("Unsupported document type: {}", file, e);
 		} catch (IOException e) {
 			LOGGER.warn("Unable to parse file: {}", file, e);
 		} finally {
-			closeQuietly(in);
-			closeQuietly(out);
+			closeQuietly(in);			
 		}
 		
 		return parsedFile;
+	}
+	
+	private boolean writeJsonPropertiesToFile(final File outputFile, final Map<String, Object> properties) {
+		boolean result = false;
+		OutputStream out = null;
+		try {					
+			out = new FileOutputStream(outputFile);
+			objectMapper.writeValue(out, properties);
+			out.flush();
+			result = true;
+		} catch (IOException e) {
+			LOGGER.warn("Unable to write to output file {}", outputFile, e);
+		} finally {
+			closeQuietly(out);
+		}
+		
+		return result;
 	}
 	
 	/**
