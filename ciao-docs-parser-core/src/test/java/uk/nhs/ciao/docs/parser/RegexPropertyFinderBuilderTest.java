@@ -1,0 +1,54 @@
+package uk.nhs.ciao.docs.parser;
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
+
+/**
+ * Unit tests for {@link RegexPropertyFinder.Builder}
+ */
+public class RegexPropertyFinderBuilderTest {
+	@Test
+	public void whenFromIsNotSpecifiedThenNameShouldBeUsed() {
+		final RegexPropertyFinder finder = builder("description").build();
+		
+		assertEquals("description", finder.getName());
+		final String expected = "property value";
+		final String actual = finder.findValue("description : property value");
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void whenToIsSpecifiedThenItShouldNotBePartOfTheValue() {
+		final RegexPropertyFinder finder = builder("description")
+				.to("title").build();
+		
+		assertEquals("description", finder.getName());
+		final String expected = "property value";
+		final String actual = finder.findValue("description : property value title");
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void whenValueAndLiteralsAreSeparatedByWhitespaceThenItShouldBeTrimmmed() {
+		final RegexPropertyFinder finder = builder("description")
+				.to("title").build();
+		
+		assertEquals("description", finder.getName());
+		final String expected = "property value";
+		final String actual = finder.findValue("\tdescription   :\t property value\t \n title");
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void whenThereIsNoWhitespaceThenTheValueShouldStillBeExtracted() {
+		final RegexPropertyFinder finder = builder("description")
+				.to("title").build();
+		
+		assertEquals("description", finder.getName());
+		final String expected = "property value";
+		final String actual = finder.findValue("description:property valuetitle");
+		assertEquals(expected, actual);
+	}
+}
