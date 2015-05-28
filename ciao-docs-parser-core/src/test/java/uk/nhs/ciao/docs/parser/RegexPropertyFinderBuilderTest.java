@@ -20,6 +20,18 @@ public class RegexPropertyFinderBuilderTest {
 	}
 	
 	@Test
+	public void whenFromIsSpecifiedThenNameShouldNotBeUsed() {
+		final RegexPropertyFinder finder = builder("description")
+				.from("description-1")
+				.build();
+		
+		assertEquals("description", finder.getName());
+		final String expected = "property value";
+		final String actual = finder.findValue("description-1 : property value");
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void whenToIsSpecifiedThenItShouldNotBePartOfTheValue() {
 		final RegexPropertyFinder finder = builder("description")
 				.to("title").build();

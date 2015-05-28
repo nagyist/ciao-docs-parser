@@ -118,11 +118,19 @@ public class RegexPropertyFinder {
 		 * used when generating the regex pattern
 		 */
 		public RegexPropertyFinder build() {
+			return new RegexPropertyFinder(name, compilePattern());
+		}
+
+		/**
+		 * Compiles the pattern to find
+		 * <p>
+		 * Group(1) matches the property value
+		 */
+		private Pattern compilePattern() {
 			final String suffix = endLiteral == null ? "" :
 				Pattern.quote(endLiteral);
-			final Pattern pattern = Pattern.compile(Pattern.quote(startLiteral) +
+			return Pattern.compile(Pattern.quote(startLiteral) +
 					"\\s*:\\s*+(.*)\\s*+" + suffix);
-			return new RegexPropertyFinder(name, pattern);
 		}
 	}
 }
