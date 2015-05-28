@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.docs.parser.RegexPropertiesExtractor.*;
+import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 
 public class KingsPropertiesExtractorFactory {
@@ -12,18 +12,18 @@ public class KingsPropertiesExtractorFactory {
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
 		extractor.addPropertyFinders(
-				propertyFinder("Re").to("ED No").build(),
-				propertyFinder("ED No").to("DOB").build(),
-				propertyFinder("DOB").to("Hosp No").build(),
-				propertyFinder("Hosp No").to("Address").build(),
-				propertyFinder("Address").to("NHS No").build(),
-				propertyFinder("NHS No").to("The patient").build(),
-				propertyFinder("Seen By").to("Investigations").build(),
-				propertyFinder("Investigations").to("Working Diagnosis").build(),
-				propertyFinder("Working Diagnosis").to("Referrals").build(),
-				propertyFinder("Referrals").to("Outcome").build(),
-				propertyFinder("Outcome").to("Comments for GP").build(),
-				propertyFinder("Comments for GP").to("If you have any").build()
+				builder("Re").to("ED No").build(),
+				builder("ED No").to("DOB").build(),
+				builder("DOB").to("Hosp No").build(),
+				builder("Hosp No").to("Address").build(),
+				builder("Address").to("NHS No").build(),
+				builder("NHS No").to("The patient").build(),
+				builder("Seen By").to("Investigations").build(),
+				builder("Investigations").to("Working Diagnosis").build(),
+				builder("Working Diagnosis").to("Referrals").build(),
+				builder("Referrals").to("Outcome").build(),
+				builder("Outcome").to("Comments for GP").build(),
+				builder("Comments for GP").to("If you have any").build()
 			);
 		
 		return extractor;
@@ -34,20 +34,20 @@ public class KingsPropertiesExtractorFactory {
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
 		extractor.addPropertyFinders(
-				propertyFinder("Ward").to("Hospital Number").build(),
-				propertyFinder("Hospital Number").to("NHS Number").build(),
-				propertyFinder("NHS Number").to("Ward Tel").build(),
-				propertyFinder("Ward Tel").to("Patient Name").build(),
-				propertyFinder("Patient Name").to("Consultant").build(),
-				propertyFinder("Consultant").to("D.O.B").build(),
-				propertyFinder("D.O.B").to("Speciality").build(),
-				propertyFinder("Speciality").to("Date of Admission").build(),
-				propertyFinder("Date of Admission").to("Discharged by").build(),
-				propertyFinder("Discharged by").to("Date of Discharge").build(),
-				propertyFinder("Date of Discharge").to("Role / Bleep").build(),
-				propertyFinder("Role / Bleep").to("Discharge Address").build(),
-				propertyFinder("Discharge Address").to("GP").build(),
-				propertyFinder("GP").build()
+				builder("Ward").to("Hospital Number").build(),
+				builder("Hospital Number").to("NHS Number").build(),
+				builder("NHS Number").to("Ward Tel").build(),
+				builder("Ward Tel").to("Patient Name").build(),
+				builder("Patient Name").to("Consultant").build(),
+				builder("Consultant").to("D.O.B").build(),
+				builder("D.O.B").to("Speciality").build(),
+				builder("Speciality").to("Date of Admission").build(),
+				builder("Date of Admission").to("Discharged by").build(),
+				builder("Discharged by").to("Date of Discharge").build(),
+				builder("Date of Discharge").to("Role / Bleep").build(),
+				builder("Role / Bleep").to("Discharge Address").build(),
+				builder("Discharge Address").to("GP").build(),
+				builder("GP").build()
 			);
 		
 		/*

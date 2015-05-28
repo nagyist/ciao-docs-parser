@@ -2,10 +2,6 @@ package uk.nhs.ciao.docs.parser;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +9,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-
+/**
+ * {@link PropertiesExtractor} which uses regular expressions to extract properties
+ * from a DOM.
+ * <p>
+ * The extraction of each property/regex pair is handled by instances of {@link RegexPropertyFinder}.
+ */
 public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RegexPropertiesExtractor.class);
 	
@@ -26,34 +26,57 @@ public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 	private String fromNodeText;
 	private String toNodeText;
 	
+	/**
+	 * Creates a new (empty) extractor instance
+	 */
 	public RegexPropertiesExtractor() {
 		propertyFinders = Sets.newLinkedHashSet();
 	}
 	
-	public RegexPropertiesExtractor(final RegexPropertyFinder... propertyFinders) throws ParserConfigurationException {
+	/**
+	 * Creates a new extractor instance backed by the specified property finders
+	 */
+	public RegexPropertiesExtractor(final RegexPropertyFinder... propertyFinders) {
 		this();
 		
 		addPropertyFinders(propertyFinders);
 	}
 	
+	/**
+	 * Adds the specified property finder to this extractor
+	 */
 	public final void addPropertyFinder(final RegexPropertyFinder propertyFinder) {
 		if (propertyFinder != null) {
 			propertyFinders.add(propertyFinder);
 		}
 	}
 	
+	/**
+	 * Adds the specified property finders to this extractor
+	 */
 	public final void addPropertyFinders(final RegexPropertyFinder... propertyFinders) {
 		for (final RegexPropertyFinder propertyFinder: propertyFinders) {
 			addPropertyFinder(propertyFinder);
 		}
 	}
 	
+	/**
+	 * Adds the specified property finders to this extractor
+	 */
 	public final void addPropertyFinders(final Iterable<? extends RegexPropertyFinder> propertyFinders) {
 		for (final RegexPropertyFinder propertyFinder: propertyFinders) {
 			addPropertyFinder(propertyFinder);
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * The text content to match is first extracted from the document, then properties are
+	 * extracted from the text by calling each registered property finder.
+	 * 
+	 * @throws UnsupportedDocumentTypeException If no matching properties could be found in the document
+	 */
 	@Override
 	public Map<String, Object> extractProperties(final Document document)
 			throws UnsupportedDocumentTypeException {
@@ -126,85 +149,5 @@ public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 		return MoreObjects.toStringHelper(this)
 				.add("propertyFinders", propertyFinders)
 				.toString();
-	}
-	
-	public static RegexPropertyFinderBuilder propertyFinder(final String name) {
-		return new RegexPropertyFinderBuilder(name);
-	}
-	
-	/**
-	 * Defines a document property and an associated regular
-	 * expression capable of finding the property in a stream of text
-	 */
-	public static class RegexPropertyFinder {
-		private final String name;
-		private final Pattern pattern;
-		
-		public RegexPropertyFinder(final String name, final Pattern pattern) {
-			this.name = Preconditions.checkNotNull(name);
-			this.pattern = Preconditions.checkNotNull(pattern);
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		/**
-		 * Attempts to find the property value in the specified text
-		 * 
-		 * @param text The text to search
-		 * @return The associated value if one could be found, or the empty string otherwise.
-		 */
-		public String findValue(final String text) {
-			final Matcher matcher = pattern.matcher(text);
-			return matcher.find() ? matcher.group(1).trim() : "";
-		}
-		
-		@Override
-		public String toString() {
-			return MoreObjects.toStringHelper(this)
-					.add("name", name)
-					.add("pattern", pattern)
-					.toString();
-		}
-	}
-	
-	public static class RegexPropertyFinderBuilder {
-		private final String name;
-		private String startLiteral;
-		private String endLiteral;
-
-		private RegexPropertyFinderBuilder(final String name) {
-			this.name = Preconditions.checkNotNull(name);
-			this.startLiteral = name;
-		}
-		
-		public RegexPropertyFinderBuilder from(final String startLiteral) {
-			this.startLiteral = Preconditions.checkNotNull(startLiteral);
-			return this;
-		}
-		
-		public RegexPropertyFinderBuilder to(final String endLiteral) {
-			this.endLiteral = endLiteral;
-			return this;
-		}
-		
-		// bean setter for spring
-		public void setStartLiteral(final String startLiteral) {
-			this.startLiteral = startLiteral;
-		}
-		
-		// bean setter for spring
-		public void setEndLiteral(final String endLiteral) {
-			this.endLiteral = endLiteral;
-		}
-		
-		public RegexPropertyFinder build() {
-			final String suffix = endLiteral == null ? "" :
-				Pattern.quote(endLiteral);
-			final Pattern pattern = Pattern.compile(Pattern.quote(startLiteral) +
-					"\\s*:\\s*+(.*)\\s*+" + suffix);
-			return new RegexPropertyFinder(name, pattern);
-		}
 	}
 }
