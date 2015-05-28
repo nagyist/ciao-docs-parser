@@ -37,6 +37,12 @@ public class MultiPropertiesExtractorTest {
 		extractor.addExtractor(delegate3);
 	}
 	
+	@Test(expected=UnsupportedDocumentTypeException.class)
+	public void whenNoExtractorsAreRegisteredThenUnsupportedDocumentTypeShouldBeThrown() throws UnsupportedDocumentTypeException {
+		extractor = new MultiPropertiesExtractor<String>();
+		extractor.extractProperties("document text");
+	}
+	
 	@Test
 	public void whenAnExtractorSucceedsThenNoFurtherExtractorsShouldBeTried() throws UnsupportedDocumentTypeException {
 		final Map<String, Object> properties = Maps.newHashMap();

@@ -18,11 +18,10 @@ public class MultiCauseIOException extends IOException {
 		super(message);
 		
 		if (causes.size() == 1) {
-			initCause(causes.get(1));
-			this.causes = new Exception[0];
-		} else {
-			this.causes = causes.toArray(new Exception[causes.size()]);
+			initCause(causes.get(0));
 		}
+		
+		this.causes = causes.toArray(new Exception[causes.size()]);
 	}
 	
 	/**
