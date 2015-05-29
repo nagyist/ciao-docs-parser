@@ -3,6 +3,7 @@ package uk.nhs.ciao.docs.parser;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.Before;
@@ -29,12 +30,10 @@ public class MultiPropertiesExtractorTest {
 	@Mock
 	private PropertiesExtractor<String> delegate3;
 	
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() {
-		extractor = new MultiPropertiesExtractor<String>();
-		extractor.addExtractor(delegate1);
-		extractor.addExtractor(delegate2);
-		extractor.addExtractor(delegate3);
+		extractor = new MultiPropertiesExtractor<String>(delegate1, delegate2, delegate3);
 	}
 	
 	@Test(expected=UnsupportedDocumentTypeException.class)
@@ -55,6 +54,24 @@ public class MultiPropertiesExtractorTest {
 		assertEquals(properties, actual);
 		
 		verifyZeroInteractions(delegate2, delegate3);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void whenANullExtractorIsRegisteredThenItShouldBeTolerated() throws UnsupportedDocumentTypeException {
+		setMockToFail(delegate1);
+		setMockToFail(delegate2);
+		
+		extractor = new MultiPropertiesExtractor<String>();
+		extractor.addExtractors(Arrays.asList(delegate1, null, delegate2, delegate3));
+		final Map<String, Object> properties = Maps.newHashMap();
+		properties.put("prop1", "value1");
+		properties.put("prop2", "value2");
+		
+		when(delegate3.extractProperties(anyString())).thenReturn(properties);
+		
+		final Map<String, Object> actual = extractor.extractProperties("document text");
+		assertEquals(properties, actual);
 	}
 	
 	@Test
