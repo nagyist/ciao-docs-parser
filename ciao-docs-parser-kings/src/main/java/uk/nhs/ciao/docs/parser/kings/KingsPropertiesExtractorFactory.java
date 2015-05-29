@@ -1,13 +1,37 @@
 package uk.nhs.ciao.docs.parser.kings;
 
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
+import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 
+/**
+ * Factory to create {@link PropertiesExtractor}s capable of
+ * finding and extracting properties from Kings PDF documents.
+ */
 public class KingsPropertiesExtractorFactory {
 	private KingsPropertiesExtractorFactory() {
 		// Suppress default constructor
 	}
 	
+	/**
+	 * Creates an extractor for finding properties in King's ED Discharge PDFs
+	 * <p>
+	 * The following properties are extracted:
+	 * <ul>
+	 * <li>Re</li>
+	 * <li>ED No</li>
+	 * <li>DOB</li>
+	 * <li>Hosp No</li>
+	 * <li>Address</li>
+	 * <li>NHS No</li>
+	 * <li>Seen By</li>
+	 * <li>Investigations</li>
+	 * <li>Working Diagnosis</li>
+	 * <li>Referrals</li>
+	 * <li>Outcome</li>
+	 * <li>Comments for GP</li>
+	 * </ul>
+	 */
 	public static RegexPropertiesExtractor createEDDischargeExtractor() {
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
@@ -30,6 +54,27 @@ public class KingsPropertiesExtractorFactory {
 	}
 	
 	
+	/**
+	 * Creates an extractor for finding properties in King's Discharge Notification PDFs
+	 * <p>
+	 * The following properties are extracted:
+	 * <ul>
+	 * <li>Ward</li>
+	 * <li>Hospital Number</li>
+	 * <li>NHS Number</li>
+	 * <li>Ward Tel</li>
+	 * <li>Patient Name</li>
+	 * <li>Consultant</li>
+	 * <li>D.O.B</li>
+	 * <li>Speciality</li>
+	 * <li>Date of Admission</li>
+	 * <li>Discharged by</li>
+	 * <li>Date of Discharge</li>
+	 * <li>Role / Bleep</li>
+	 * <li>Discharge Address</li>
+	 * <li>GP</li>
+	 * </ul>
+	 */
 	public static RegexPropertiesExtractor createDischargeNotificationExtractor() {		
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
