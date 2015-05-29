@@ -2,58 +2,114 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import static org.junit.Assert.*;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Closeables;
 
 /**
- * Tests for {@link KingsDischargeSummaryParser} via the console main method
+ * Tests for {@link KingsDischargeSummaryParser} via the main method (console or gui mode)
  * <p>
  * Tests are performed by running some input examples through the parser and checking the extracted
  * JSON content against corresponding expectation documents. The input and expectation documents
  * are on the classpath under the test resources.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(KingsDischargeSummaryParser.class)
+@PowerMockIgnore("javax.swing.*")
 public class KingsDischargeSummaryParserTest {
 	private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String,Object>>(){};
 	
 	private ObjectMapper objectMapper;
+	private File inputFolder;
+	private File outputFolder;
 	
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		objectMapper = new ObjectMapper();
+		
+		inputFolder = new File("src/test/resources/" +
+				getClass().getPackage().getName().replace('.', '/') + "/input");
+		
+		outputFolder = new File("target/pdf_output");
+		delete(outputFolder);
 	}
 	
 	@Test
-	public void testPdfExamples() throws Exception {
-		final File outputFolder = new File("target/pdf_output");
-		delete(outputFolder);
-		
+	public void testPdfExamplesWithConsole() throws Exception {
 		final String[] args = new String[] {
-			"src/test/resources/" + getClass().getPackage().getName().replace('.', '/') + "/input",
+			inputFolder.getPath(),
 			outputFolder.getPath()
 		};
 		KingsDischargeSummaryParser.main(args);
 		
+		assertExpectedOutput();
+	}
+	
+	@Test
+	public void testPdfExamplesWithGUI() throws Exception {
+		final JFileChooser fileChooser = PowerMockito.mock(JFileChooser.class);
+		final JOptionPane pane = PowerMockito.mock(JOptionPane.class);
+		final JDialog dialog = PowerMockito.mock(JDialog.class);
+		try {
+
+			PowerMockito.whenNew(JFileChooser.class).withAnyArguments()
+				.thenReturn(fileChooser);
+			
+			PowerMockito.whenNew(JOptionPane.class).withAnyArguments()
+			.thenReturn(pane);
+			
+			PowerMockito.when(fileChooser.showDialog(Mockito.any(Component.class), Mockito.anyString()))
+				.thenReturn(JFileChooser.APPROVE_OPTION);
+			
+			PowerMockito.when(fileChooser.getSelectedFile())
+				.thenReturn(inputFolder, outputFolder);
+			
+			PowerMockito.when(pane.createDialog(Mockito.anyString()))
+				.thenReturn(dialog);
+			
+			final String[] args = new String[0];
+			KingsDischargeSummaryParser.main(args);
+			
+			assertExpectedOutput();
+		} finally {			
+			if (dialog != null) {
+				dialog.dispose();
+			}
+		}
+	}
+	
+	private void assertExpectedOutput() throws Exception {
 		assertTrue(outputFolder.isDirectory());
 		
 		// Check against expectations
 		for (final String name: Arrays.asList("Example2", "Example3")) {
-			checkJsonOutput(outputFolder, name + ".txt");
+			checkJsonOutput(name + ".txt");
 		}
 		
 		// Example.pdf is not a supported type - so there should be no Example.txt in the output
 		assertFalse(new File(outputFolder, "Example.txt").exists());
 	}
 	
-	private void checkJsonOutput(final File outputFolder, final String name) throws Exception {
+	private void checkJsonOutput(final String name) throws Exception {
 		InputStream inputStream = null;
 		try {
 			inputStream = getClass().getResourceAsStream("expected/" + name);

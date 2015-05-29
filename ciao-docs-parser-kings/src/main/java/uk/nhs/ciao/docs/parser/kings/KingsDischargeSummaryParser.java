@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -88,10 +89,20 @@ public class KingsDischargeSummaryParser implements Runnable {
 				
 				final String message = String.format("Parsed %s files - check %s for the output",
 						fileCount, outputFolder);
-				JOptionPane.showMessageDialog(null, message);
+				showDialog(message);
 			}
 		};
 		new KingsDischargeSummaryParser(applicationContext, listener, inputFolder, outputFolder).run();
+	}
+	
+	/**
+	 * Shows a GUI message dialog
+	 */
+	private static void showDialog(final String message) {
+		final JOptionPane pane = new JOptionPane(message);
+		final JDialog dialog = pane.createDialog("Parsing complete");
+		dialog.setVisible(true);
+		dialog.dispose();
 	}
 	
 	/**
@@ -165,7 +176,7 @@ public class KingsDischargeSummaryParser implements Runnable {
 			
 			final String filename = getBaseName(file) + ".txt";
 			final File outputFile = new File(outputFolder, filename);				
-			writeJsonPropertiesToFile(outputFile, properties);
+			parsedFile = writeJsonPropertiesToFile(outputFile, properties);
 		} catch (UnsupportedDocumentTypeException e) {
 			LOGGER.warn("Unsupported document type: {}", file, e);
 		} catch (IOException e) {
