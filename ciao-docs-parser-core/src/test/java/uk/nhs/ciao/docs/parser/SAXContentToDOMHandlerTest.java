@@ -48,6 +48,11 @@ public class SAXContentToDOMHandlerTest {
 		final Document document = handler.getDocument();
 		assertNotNull(document);
 		assertEquals(0, document.getChildNodes().getLength());
+		
+		// Document can be accessed multiple times
+		assertNotNull(handler.getDocument());
+		handler.clear();
+		assertNull(handler.getDocument());
 	}
 	
 	@Test
@@ -91,6 +96,74 @@ public class SAXContentToDOMHandlerTest {
 		
 		final String expected = "start" + whitespace + whitespace + "end";
 		assertEquals(expected, node.getTextContent());
+	}
+	
+	@Test
+	public void nodesWithJustWhitespaceAreRemovedDuringNormalisation() throws Exception {
+		handler.startDocument();
+		startElement("html");
+		characters(whitespace);
+		endElement("html");
+		handler.endDocument();
+		
+		final Element root = handler.getDocument().getDocumentElement();
+		assertNotNull(root);
+		
+		assertEquals(0, root.getChildNodes().getLength());
+	}
+	
+	@Test
+	public void nodesWithJustWhitespaceAreRetainedWhenNormalisationIsDisabled() throws Exception {
+		final boolean whitespaceNormalisationEnabled = false;
+		initHandler(whitespaceNormalisationEnabled);
+		handler.startDocument();
+		startElement("html");
+		characters(whitespace);
+		endElement("html");
+		handler.endDocument();
+		
+		final Element root = handler.getDocument().getDocumentElement();
+		assertNotNull(root);
+		
+		assertEquals(1, root.getChildNodes().getLength());
+		final String actual = root.getChildNodes().item(0).getTextContent();
+		assertEquals(whitespace, actual);
+	}
+	
+	@Test
+	public void attributesAreAdded() throws Exception {
+		when(attributes.getLength()).thenReturn(1);
+		when(attributes.getLocalName(0)).thenReturn("key");
+		when(attributes.getValue(0)).thenReturn("value");
+		
+		handler.startDocument();
+		startElement("html");
+		endElement("html");
+		handler.endDocument();
+		
+		final Element root = handler.getDocument().getDocumentElement();
+		assertNotNull(root);
+		
+		assertEquals(1, root.getAttributes().getLength());
+		assertEquals("value", root.getAttribute("key"));
+	}
+	
+	@Test
+	public void ignorableWhitespaceIsAdded() throws Exception {
+		final boolean whitespaceNormalisationEnabled = false;
+		initHandler(whitespaceNormalisationEnabled);
+		handler.startDocument();
+		startElement("html");
+		handler.ignorableWhitespace(whitespace.toCharArray(), 0, whitespace.length());
+		endElement("html");
+		handler.endDocument();
+		
+		final Element root = handler.getDocument().getDocumentElement();
+		assertNotNull(root);
+		
+		assertEquals(1, root.getChildNodes().getLength());
+		final String actual = root.getChildNodes().item(0).getTextContent();
+		assertEquals(whitespace, actual);
 	}
 	
 	private void characters(final String value) throws SAXException {
