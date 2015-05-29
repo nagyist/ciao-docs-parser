@@ -134,6 +134,10 @@ public class SAXContentToDOMHandler extends DefaultHandler {
 	private void normaliseWhitespace() {			
 		document.normalizeDocument();
 		
+		if (document.getDocumentElement() == null) {
+			return;
+		}
+		
 		final Queue<Node> queue = Lists.newLinkedList();
 		queue.add(document.getDocumentElement());
 		while (!queue.isEmpty()) {
