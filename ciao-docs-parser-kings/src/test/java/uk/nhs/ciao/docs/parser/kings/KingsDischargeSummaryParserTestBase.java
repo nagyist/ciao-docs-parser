@@ -2,24 +2,13 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import static org.junit.Assert.*;
 
-import java.awt.Component;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,15 +21,12 @@ import com.google.common.io.Closeables;
  * JSON content against corresponding expectation documents. The input and expectation documents
  * are on the classpath under the test resources.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(KingsDischargeSummaryParser.class)
-@PowerMockIgnore("javax.swing.*")
-public class KingsDischargeSummaryParserTest {
+public abstract class KingsDischargeSummaryParserTestBase {
 	private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String,Object>>(){};
 	
 	private ObjectMapper objectMapper;
-	private File inputFolder;
-	private File outputFolder;
+	File inputFolder;
+	File outputFolder;
 	
 	@Before
 	public void setup() throws Exception {
@@ -53,48 +39,10 @@ public class KingsDischargeSummaryParserTest {
 		delete(outputFolder);
 	}
 	
-	@Test
-	public void testPdfExamplesWithConsole() throws Exception {
-		final String[] args = new String[] {
-			inputFolder.getPath(),
-			outputFolder.getPath()
-		};
+	protected void runTest(final String... args) throws Exception {
 		KingsDischargeSummaryParser.main(args);
 		
 		assertExpectedOutput();
-	}
-	
-	@Test
-	public void testPdfExamplesWithGUI() throws Exception {
-		final JFileChooser fileChooser = PowerMockito.mock(JFileChooser.class);
-		final JOptionPane pane = PowerMockito.mock(JOptionPane.class);
-		final JDialog dialog = PowerMockito.mock(JDialog.class);
-		try {
-
-			PowerMockito.whenNew(JFileChooser.class).withAnyArguments()
-				.thenReturn(fileChooser);
-			
-			PowerMockito.whenNew(JOptionPane.class).withAnyArguments()
-			.thenReturn(pane);
-			
-			PowerMockito.when(fileChooser.showDialog(Mockito.any(Component.class), Mockito.anyString()))
-				.thenReturn(JFileChooser.APPROVE_OPTION);
-			
-			PowerMockito.when(fileChooser.getSelectedFile())
-				.thenReturn(inputFolder, outputFolder);
-			
-			PowerMockito.when(pane.createDialog(Mockito.anyString()))
-				.thenReturn(dialog);
-			
-			final String[] args = new String[0];
-			KingsDischargeSummaryParser.main(args);
-			
-			assertExpectedOutput();
-		} finally {			
-			if (dialog != null) {
-				dialog.dispose();
-			}
-		}
 	}
 	
 	private void assertExpectedOutput() throws Exception {
