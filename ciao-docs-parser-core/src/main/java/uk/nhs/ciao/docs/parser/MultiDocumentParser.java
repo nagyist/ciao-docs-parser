@@ -28,33 +28,74 @@ public final class MultiDocumentParser implements DocumentParser {
 	
 	private final Set<DocumentParser> parsers;
 	
+	/**
+	 * Constructs a new empty multi-document parser. Delegate parsers can be added later
+	 * after construction.
+	 */
 	public MultiDocumentParser() {
 		parsers = Sets.newLinkedHashSet();
 	}
 	
+	/**
+	 * Constructs a new multi-document parser which delegates to the specified parsers
+	 * when attempting to parse documents. Additional delegate parsers can be added
+	 * later after construction.
+	 * <p>
+	 * Delegate parsers are attempted in registration order.
+	 * 
+	 * @param parsers The delegate parsers to register
+	 */
 	public MultiDocumentParser(final DocumentParser... parsers) {
 		this();
 		addParsers(parsers);
 	}
 	
+	/**
+	 * Registers the specified parser as a delegate to use when attempting to parse documents.
+	 * <p>
+	 * Delegate parsers are attempted in registration order
+	 * 
+	 * @param parser The delegate parser to register
+	 */
 	public void addParser(final DocumentParser parser) {
 		if (parser != null) {
 			parsers.add(parser);
 		}
 	}
 	
+	/**
+	 * Registers the specified parsers as delegates to use when attempting to parse documents.
+	 * <p>
+	 * Delegate parsers are attempted in registration order
+	 * 
+	 * @param parser The delegate parsers to register
+	 */
 	public void addParsers(final Iterable<? extends DocumentParser> parsers) {
 		for (final DocumentParser parser: parsers) {
 			addParser(parser);
 		}
 	}
 	
+	/**
+	 * Registers the specified parsers as delegates to use when attempting to parse documents.
+	 * <p>
+	 * Delegate parsers are attempted in registration order
+	 * 
+	 * @param parser The delegate parsers to register
+	 */
 	public void addParsers(final DocumentParser... parsers) {
 		for (final DocumentParser parser: parsers) {
 			addParser(parser);
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @throws UnsupportedDocumentTypeException If no registered parser supports the document type, or if
+	 * 			no parses are registered
+	 * @throws MultiCauseIOException When all parsers failed and at least one failed with an IOException
+	 */
 	@Override
 	public Map<String, Object> parseDocument(final InputStream in) throws UnsupportedDocumentTypeException, IOException {
 		final Map<String, Object> properties;
@@ -70,12 +111,18 @@ public final class MultiDocumentParser implements DocumentParser {
 		return properties;
 	}
 	
-	private Map<String, Object> parseDocumentWithSingleParser(final InputStream in)
-			throws UnsupportedDocumentTypeException, IOException {
+	/**
+	 * Delegates the parse to the single registered parser
+	 */
+	private Map<String, Object> parseDocumentWithSingleParser(final InputStream in) throws UnsupportedDocumentTypeException, IOException {
 		final DocumentParser parser = parsers.iterator().next();
 		return parser.parseDocument(in);
 	}
 	
+	/**
+	 * Parses the document when multiple parsers are registered. Each parser is
+	 * tried in turn until one succeeds, or all fail.
+	 */
 	private Map<String, Object> parseDocumentWithMultipleParsers(final InputStream in)
 			throws UnsupportedDocumentTypeException, IOException {
 		// cache the input stream (multiple reads may be required)
@@ -95,7 +142,7 @@ public final class MultiDocumentParser implements DocumentParser {
 			}
 		}
 		
-		if (onlyThrewUnsupportedDocumentType(suppressedExceptions)) {
+		if (onlyContainsUnsupportedDocumentType(suppressedExceptions)) {
 			throw new UnsupportedDocumentTypeException("No parsers support the type of document");
 		} else {
 			throw new MultiCauseIOException("All parsers failed to parse the document", suppressedExceptions);
@@ -116,7 +163,13 @@ public final class MultiDocumentParser implements DocumentParser {
 		return new ByteArrayInputStream(bytes);
 	}
 	
-	private boolean onlyThrewUnsupportedDocumentType(final List<Exception> suppressedExceptions) {
+	/**
+	 * Tests if the specified list only contains UnsupportedDocumentTypeExceptions
+	 * 
+	 * @param suppressedExceptions The list to test
+	 * @return true if the list only contains UnsupportedDocumentTypeExceptions, or false otherwise
+	 */
+	private boolean onlyContainsUnsupportedDocumentType(final List<Exception> suppressedExceptions) {
 		for (final Exception exception: suppressedExceptions) {
 			if (!(exception instanceof UnsupportedDocumentTypeException)) {
 				return false;

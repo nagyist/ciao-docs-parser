@@ -65,6 +65,10 @@ public class RegexPropertyFinder {
 	
 	/**
 	 * Fluent builder for creating regex property finders
+	 * <p>
+	 * Currently this builder creates patterns of the form:
+	 * <code>{startLiteral} ':' {propertyValue} {endLiteral}?</code> and is
+	 * tolerant of whitespace between tokens
 	 */
 	public static class Builder {
 		private final String name;

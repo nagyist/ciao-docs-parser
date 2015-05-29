@@ -14,6 +14,17 @@ public class MultiCauseIOException extends IOException {
 	
 	private final Exception[] causes;
 	
+	/**
+	 * Constructs a new exception with the specified detail message, and list of initial causes.
+	 * <p>
+	 * If <code>causes</code> contains a single exception, it is registered as the main cause (@see
+	 * {@link #getCause()}.
+	 * <p>
+	 * All exceptions in the <code>causes</code> list can be retrieved later via {@link #getCauses()}
+	 * 
+	 * @param message The detail message
+	 * @param causes The list of initial causes
+	 */
 	public MultiCauseIOException(final String message, final List<? extends Exception> causes) {
 		super(message);
 		
@@ -26,8 +37,12 @@ public class MultiCauseIOException extends IOException {
 	
 	/**
 	 * The multiple causes associated with this exception
+	 * <p>
+	 * A defensive copy of the causes is returned - any modifications on the returned array
+	 * will not be reflected in subsequent calls to this method.
 	 */
 	public Exception[] getCauses() {
+		// defensive copy
 		return Arrays.copyOf(causes, causes.length);
 	}
 }
