@@ -76,6 +76,7 @@ public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 	 * extracted from the text by calling each registered property finder.
 	 * 
 	 * @throws UnsupportedDocumentTypeException If no matching properties could be found in the document
+	 * @see #getTextContent(Document)
 	 */
 	@Override
 	public Map<String, Object> extractProperties(final Document document)
@@ -117,7 +118,9 @@ public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 	
 	/**
 	 * Returns the text content of the document, possibly filtered if from/to node
-	 * filtering has been enabled
+	 * filtering has been enabled.
+	 * <p>
+	 * Only text contained in 'p' tags is used when determining the content to return.
 	 * 
 	 * @see #setTextFilter(String, String)
 	 */
