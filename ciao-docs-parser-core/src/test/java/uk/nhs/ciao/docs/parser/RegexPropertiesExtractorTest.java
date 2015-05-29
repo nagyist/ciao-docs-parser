@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -37,10 +38,9 @@ public class RegexPropertiesExtractorTest {
 				builder("first-property").to("second-property").build());
 		extractor.addPropertyFinders(
 				builder("second-property").to("third-property").build());
-		extractor.addPropertyFinders(
-				builder("third-property").to("last-property").build());
-		extractor.addPropertyFinders(
-				builder("last-property").to("token!").build());
+		extractor.addPropertyFinders(Arrays.asList(
+				builder("third-property").to("last-property").build(),
+				builder("last-property").to("token!").build()));
 		
 		final Map<String, Object> expected = Maps.newHashMap();
 		expected.put("first-property", "property1-value");
@@ -55,14 +55,10 @@ public class RegexPropertiesExtractorTest {
 	
 	@Test
 	public void testExtractionWithTextFilter() throws Exception {
-		extractor = new RegexPropertiesExtractor();
-		extractor.addPropertyFinder(
-				builder("first-property").to("second-property").build());
-		extractor.addPropertyFinders(
-				builder("second-property").to("third-property").build());
-		extractor.addPropertyFinders(
-				builder("third-property").to("last-property").build());
-		extractor.addPropertyFinders(
+		extractor = new RegexPropertiesExtractor(
+				builder("first-property").to("second-property").build(),
+				builder("second-property").to("third-property").build(),
+				builder("third-property").to("last-property").build(),
 				builder("last-property").build()); // no ending tag - rely on text filter
 
 		extractor.setTextFilter("second-property", "last-property");
@@ -76,4 +72,11 @@ public class RegexPropertiesExtractorTest {
 		assertEquals(expected, actual);
 	}
 
+	@Test(expected=UnsupportedDocumentTypeException.class)
+	public void whenNotExtractorsAreRegisteredThenUnsupportedDocumentTypeShouldBeThrow() throws Exception {
+		extractor = new RegexPropertiesExtractor();
+		
+		final Document document = loadDocument("regex-test-1.html");
+		extractor.extractProperties(document);
+	}
 }
