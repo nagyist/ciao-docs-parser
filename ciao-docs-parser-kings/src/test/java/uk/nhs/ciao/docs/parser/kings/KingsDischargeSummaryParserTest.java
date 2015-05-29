@@ -13,14 +13,13 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.agent.PowerMockAgent;
-import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,17 +32,11 @@ import com.google.common.io.Closeables;
  * JSON content against corresponding expectation documents. The input and expectation documents
  * are on the classpath under the test resources.
  */
+@RunWith(PowerMockRunner.class)
 @PrepareForTest(KingsDischargeSummaryParser.class)
 @PowerMockIgnore("javax.swing.*")
 public class KingsDischargeSummaryParserTest {
-	static {
-       PowerMockAgent.initializeIfNeeded();
-   }
-	
 	private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String,Object>>(){};
-	
-	@Rule
-    public PowerMockRule rule = new PowerMockRule();
 	
 	private ObjectMapper objectMapper;
 	private File inputFolder;

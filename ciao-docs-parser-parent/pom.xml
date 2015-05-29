@@ -14,7 +14,6 @@
 	</modules>
 
 	<properties>
-		<surefireArgLine></surefireArgLine> <!-- For child modules -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -98,7 +97,7 @@
 			            </goals>
 			            <configuration>
 			                <destFile>${project.build.directory}/jacoco.exec</destFile>
-			                <propertyName>surefireJacocoArgLine</propertyName>
+			                <propertyName>surefireArgLine</propertyName>
 			            </configuration>
 			        </execution>
 			    </executions>
@@ -108,8 +107,7 @@
 			    <artifactId>maven-surefire-plugin</artifactId>
 			    <configuration>
 			        <!-- Sets the VM argument line used when unit tests are run. -->
-			        <argLine>${surefireArgLine} ${surefireJacocoArgLine}</argLine>
-			       <useSystemClassLoader>true</useSystemClassLoader>
+			        <argLine>${surefireArgLine}</argLine>
 			    </configuration>
 			</plugin>
 		</plugins>
@@ -222,18 +220,6 @@
 				<artifactId>powermock-api-mockito</artifactId>
 				<version>${powermock.version}</version>
 			</dependency>
-			
-			<dependency>
-		        <groupId>org.powermock</groupId>
-		        <artifactId>powermock-module-junit4-rule-agent</artifactId>
-		        <version>${powermock.version}</version>
-			</dependency>
-		
-			<dependency>
-		        <groupId>org.powermock</groupId>
-		        <artifactId>powermock-module-javaagent</artifactId>
-		        <version>${powermock.version}</version>
-			</dependency>	
 					    
 		</dependencies>
 	</dependencyManagement>
