@@ -58,8 +58,22 @@
 			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+	        <groupId>org.powermock</groupId>
+	        <artifactId>powermock-module-junit4-rule-agent</artifactId>
+	        <scope>test</scope>
+		</dependency>
+		<dependency>
+	        <groupId>org.powermock</groupId>
+	        <artifactId>powermock-module-javaagent</artifactId>
+	        <scope>test</scope>
+		</dependency>	
 				
 	</dependencies>
+
+	<properties>
+		<surefireArgLine>-javaagent:${settings.localRepository}/org/powermock/powermock-module-javaagent/${powermock.version}/powermock-module-javaagent-${powermock.version}.jar</surefireArgLine>
+	</properties>
 
 	<build>
 		<plugins>
