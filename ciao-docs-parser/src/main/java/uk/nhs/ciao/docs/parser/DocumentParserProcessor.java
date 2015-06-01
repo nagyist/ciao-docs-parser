@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser;
 
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -15,21 +15,43 @@ import uk.nhs.ciao.docs.parser.DocumentParser;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closeables;
 
+/**
+ * A camel processor to parse an incoming document.
+ * <p>
+ * The processor delegates parsing to the {@link DocumentParser} provided
+ * at runtime.
+ */
 public class DocumentParserProcessor implements Processor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserProcessor.class);
 	
 	private final DocumentParser parser;
 	
+	/***
+	 * Constructs a new processor backed by the specified document parser
+	 * 
+	 * @param parser The parser used to process incoming documents
+	 */
 	public DocumentParserProcessor(final DocumentParser parser) {
 		this.parser = Preconditions.checkNotNull(parser);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Delegates processing of the incoming document to the configured parser
+	 * and adds the extracted properties to the exchange output message as
+	 * {@link ParsedDocument}.
+	 * 
+	 * @throws UnsupportedDocumentTypeException If the parser does not support the type (e.g. syntax)
+	 * 		of the incoming document
+	 * @throws IOException If parser failed to read the incoming document
+	 */
 	@Override
-	public void process(final Exchange exchange) throws Exception {
+	public void process(final Exchange exchange) throws UnsupportedDocumentTypeException, IOException {
 		LOGGER.debug("process: {}", exchange);
 		
-		final OriginalDocument originalDocument = getOriginalDocument(exchange);		
-		final InputStream inputStream = new ByteArrayInputStream(originalDocument.getBody());
+		final Document originalDocument = Document.valueOf(exchange.getIn());		
+		final InputStream inputStream = originalDocument.getStream();
 		
 		try {
 			final Map<String, Object> properties = parser.parseDocument(inputStream);
@@ -42,13 +64,5 @@ public class DocumentParserProcessor implements Processor {
 		} finally {
 			Closeables.closeQuietly(inputStream);
 		}
-	}
-	
-	private OriginalDocument getOriginalDocument(final Exchange exchange) {
-		final Message inputMessage = exchange.getIn();
-		final String name = inputMessage.getHeader(Exchange.FILE_NAME, String.class);
-		final byte[] body = inputMessage.getBody(byte[].class);
-		
-		return new OriginalDocument(name, body);
 	}
 }
