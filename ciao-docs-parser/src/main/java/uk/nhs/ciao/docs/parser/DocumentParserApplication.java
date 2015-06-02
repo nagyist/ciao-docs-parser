@@ -48,7 +48,11 @@ public class DocumentParserApplication extends CamelApplication {
 		CamelApplicationRunner.runApplication(application);
 	}
 	
-	public DocumentParserApplication(final String[] args) throws CIAOConfigurationException {
+	public DocumentParserApplication(final String... args) throws CIAOConfigurationException {
 		super("ciao-docs-parser.properties", args);
+	}
+	
+	public DocumentParserApplication(final CIAOConfig ciaoConfig, final String... args) {
+		super(ciaoConfig, args);
 	}
 }
