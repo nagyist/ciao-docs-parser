@@ -68,8 +68,6 @@ public class DocumentParserApplicationTest {
 		addProperties(cipProperties, CIP_NAME + ".properties");
 		addProperties(cipProperties, CIP_NAME + "-test.properties");
 		
-		System.out.println(cipProperties.getAllProperties());
-		
 		return new CIAOConfig(cipProperties);
 	}
 	
