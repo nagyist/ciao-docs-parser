@@ -163,7 +163,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 				.handled(false)
 			.doCatch(Exception.class)
 				.log(LoggingLevel.ERROR, LOGGER, "Exception while processing document: ${file:name}")
-				.to("log:uk.nhs.itk.ciao.toc.TransferOfCareRoutes?level=ERROR&showCaughtException=true")
+				.to("log:" + LOGGER.getName() + "?level=ERROR&showCaughtException=true")
 				.handled(false);
 		}
 	}
