@@ -1,14 +1,15 @@
 package uk.nhs.ciao.docs.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.activemq.util.ByteArrayInputStream;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 /**
  * Represents the binary content of a named document.
@@ -19,8 +20,25 @@ import com.google.common.base.Preconditions;
  * of this class to determine which JSON properties to include.
  */
 public class Document {
+	/**
+	 * Generic media type to use when a specific media type is not specified
+	 */
+	private static final String DEFAULT_MEDIA_TYPE = "application/octet-stream";
+	
 	private final String name;
 	private final byte[] content;
+	private final String mediaType;
+	
+	/**
+	 * Constructs a new document instance with the default media type
+	 * 
+	 * @param name The name of the document
+	 * @param content The document content - the byte array is stored directly,
+	 * 			no defensive copies are made
+	 */
+	public Document(final String name, final byte[] content) {
+		this(name, content, DEFAULT_MEDIA_TYPE);
+	}
 	
 	/**
 	 * Constructs a new document instance
@@ -28,10 +46,12 @@ public class Document {
 	 * @param name The name of the document
 	 * @param content The document content - the byte array is stored directly,
 	 * 			no defensive copies are made
+	 * @param mediaType The media type of the document
 	 */
-	public Document(final String name, final byte[] content) {
+	public Document(final String name, final byte[] content, final String mediaType) {
 		this.name = Preconditions.checkNotNull(name);
 		this.content = Preconditions.checkNotNull(content);
+		this.mediaType = Strings.isNullOrEmpty(mediaType) ? DEFAULT_MEDIA_TYPE : mediaType;
 	}
 	
 	/**
@@ -48,6 +68,13 @@ public class Document {
 	 */
 	public byte[] getContent() {
 		return content;
+	}
+	
+	/**
+	 * The media type of the document
+	 */
+	public String getMediaType() {
+		return mediaType;
 	}
 	
 	/**
