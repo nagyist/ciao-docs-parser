@@ -27,7 +27,7 @@ public class Document {
 	
 	private final String name;
 	private final byte[] content;
-	private final String mediaType;
+	private String mediaType;
 	
 	/**
 	 * Constructs a new document instance with the default media type
@@ -37,21 +37,9 @@ public class Document {
 	 * 			no defensive copies are made
 	 */
 	public Document(final String name, final byte[] content) {
-		this(name, content, DEFAULT_MEDIA_TYPE);
-	}
-	
-	/**
-	 * Constructs a new document instance
-	 * 
-	 * @param name The name of the document
-	 * @param content The document content - the byte array is stored directly,
-	 * 			no defensive copies are made
-	 * @param mediaType The media type of the document
-	 */
-	public Document(final String name, final byte[] content, final String mediaType) {
 		this.name = Preconditions.checkNotNull(name);
 		this.content = Preconditions.checkNotNull(content);
-		this.mediaType = Strings.isNullOrEmpty(mediaType) ? DEFAULT_MEDIA_TYPE : mediaType;
+		this.mediaType = DEFAULT_MEDIA_TYPE;
 	}
 	
 	/**
@@ -75,6 +63,13 @@ public class Document {
 	 */
 	public String getMediaType() {
 		return mediaType;
+	}
+	
+	/**
+	 * Sets the media type of the document
+	 */
+	public void setMediaType(final String mediaType) {
+		this.mediaType = Preconditions.checkNotNull(mediaType);
 	}
 	
 	/**
@@ -102,9 +97,17 @@ public class Document {
 	 * @return The associated document instance
 	 */
 	public static Document valueOf(final Message message) {
+		System.out.println(message.getHeaders());
 		final String name = message.getHeader(Exchange.FILE_NAME, String.class);
 		final byte[] body = message.getBody(byte[].class);
 		
-		return new Document(name, body);
+		final Document document = new Document(name, body);
+		
+		final String mediaType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
+		if (!Strings.isNullOrEmpty(mediaType)) {
+			document.setMediaType(mediaType);
+		}
+		
+		return document;
 	}
 }

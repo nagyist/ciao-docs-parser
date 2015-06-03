@@ -7,8 +7,9 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
-
 import org.junit.Before;
+
+import uk.nhs.ciao.docs.parser.PropertyNames;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +64,7 @@ public abstract class KingsDischargeSummaryParserTestBase {
 		assertFalse(new File(outputFolder, "Example.txt").exists());
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void checkJsonOutput(final String name) throws Exception {
 		InputStream inputStream = null;
 		try {
@@ -72,7 +74,10 @@ public abstract class KingsDischargeSummaryParserTestBase {
 			final File actualFile = new File(outputFolder, name);
 			final Map<String, Object> actual = objectMapper.readValue(actualFile, MAP_TYPE);
 			
-			assertEquals("JSON content: " + name, expected, actual);
+			assertTrue("Parsed content: " + name, actual.entrySet().containsAll(expected.entrySet()));
+			assertTrue("Metadata expected: " + name, actual.containsKey(PropertyNames.METADATA));
+			assertEquals("Media type: " + name, "application/pdf",
+					((Map<String, Object>)actual.get(PropertyNames.METADATA)).get(PropertyNames.CONTENT_TYPE));
 		} finally {
 			Closeables.closeQuietly(inputStream);
 		}

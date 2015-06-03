@@ -154,7 +154,9 @@ public class DocumentParserApplicationTest {
 					final Map<String, Object> parsedDocument = fromJson(json);
 					
 					// check the value of 'properties' in the parsedDocument
-					return expectedProperties.equals(parsedDocument.get("properties"));
+					@SuppressWarnings("unchecked")
+					final Map<String, Object> properties = (Map<String, Object>) parsedDocument.get("properties");
+					return properties.entrySet().containsAll(expectedProperties.entrySet());
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

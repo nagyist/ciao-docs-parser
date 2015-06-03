@@ -57,12 +57,30 @@ public class DocumentParserProcessor implements Processor {
 			final Map<String, Object> properties = parser.parseDocument(inputStream);
 			LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
 			
+			setOriginalDocumentMediaType(originalDocument, properties);
+			
 			final Message outputMessage = exchange.getOut();
 			final ParsedDocument parsedDocument = new ParsedDocument(originalDocument, properties);
 			outputMessage.setBody(parsedDocument);
 			outputMessage.setHeader(Exchange.FILE_NAME, originalDocument.getName());
 		} finally {
 			Closeables.closeQuietly(inputStream);
+		}
+	}
+	
+	/**
+	 * Updates the media type of the original document (if the parser has detected one)
+	 */
+	private void setOriginalDocumentMediaType(final Document originalDocument, final Map<String, Object> properties) {
+		if (properties == null || !properties.containsKey(PropertyNames.METADATA)) {
+			return;
+		}
+		
+		@SuppressWarnings("unchecked")
+		final Map<String, Object> metadata = (Map<String, Object>) properties.get(PropertyNames.METADATA);
+		final Object mediaType = metadata.get(PropertyNames.METADATA);
+		if (mediaType instanceof String) {				
+			originalDocument.setMediaType((String)mediaType);
 		}
 	}
 }
