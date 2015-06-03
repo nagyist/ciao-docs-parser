@@ -39,8 +39,14 @@ public abstract class KingsDischargeSummaryParserTestBase {
 		delete(outputFolder);
 	}
 	
-	protected void runTest(final String... args) throws Exception {
+	protected void runMainTest(final String... args) throws Exception {
 		KingsDischargeSummaryParser.main(args);
+		
+		assertExpectedOutput();
+	}
+	
+	protected void runTest(final KingsDischargeSummaryParser parser) throws Exception {
+		parser.run();
 		
 		assertExpectedOutput();
 	}

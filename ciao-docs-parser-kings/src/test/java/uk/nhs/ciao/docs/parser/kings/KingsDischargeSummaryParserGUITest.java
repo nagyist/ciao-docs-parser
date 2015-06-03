@@ -1,18 +1,14 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import java.awt.Component;
-
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Iterator;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import uk.nhs.ciao.docs.parser.kings.KingsDischargeSummaryParser.GUI;
 
 /**
  * Tests for {@link KingsDischargeSummaryParser} via the main method (console or gui mode)
@@ -21,37 +17,41 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * JSON content against corresponding expectation documents. The input and expectation documents
  * are on the classpath under the test resources.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(KingsDischargeSummaryParser.class)
-@PowerMockIgnore("javax.swing.*")
 public class KingsDischargeSummaryParserGUITest extends KingsDischargeSummaryParserTestBase {	
 	@Test
-	public void testPdfExamplesWithGUI() throws Exception {
-		final JFileChooser fileChooser = PowerMockito.mock(JFileChooser.class);
-		final JOptionPane pane = PowerMockito.mock(JOptionPane.class);
-		final JDialog dialog = PowerMockito.mock(JDialog.class);
+	public void testPdfExamplesWithGUI() throws Exception {		
+		final ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("/uk/nhs/ciao/docs/parser/kings/beans.xml");
 		try {
-
-			PowerMockito.whenNew(JFileChooser.class).withAnyArguments()
-				.thenReturn(fileChooser);
-			
-			PowerMockito.whenNew(JOptionPane.class).withAnyArguments()
-			.thenReturn(pane);
-			
-			PowerMockito.when(fileChooser.showDialog(Mockito.any(Component.class), Mockito.anyString()))
-				.thenReturn(JFileChooser.APPROVE_OPTION);
-			
-			PowerMockito.when(fileChooser.getSelectedFile())
-				.thenReturn(inputFolder, outputFolder);
-			
-			PowerMockito.when(pane.createDialog(Mockito.anyString()))
-				.thenReturn(dialog);
-			
-			runTest();
-		} finally {			
-			if (dialog != null) {
-				dialog.dispose();
-			}
+			final StubbedGUI parser = new StubbedGUI(applicationContext, inputFolder, outputFolder);
+			runTest(parser);
+		} finally {
+			applicationContext.close();
+		}
+	}
+	
+	private static class StubbedGUI extends GUI {
+		private Iterator<File> folders;
+		
+		public StubbedGUI(final ApplicationContext applicationContext, final File... folders) throws Exception {
+			super(applicationContext);
+			this.folders = Arrays.asList(folders).iterator();
+		}
+		
+		@Override
+		protected void initLookAndFeel() throws Exception {
+			// NOOP
+		}
+		
+		@Override
+		protected void showDialog(final String title, final String message) {
+			// NOOP
+		}
+		
+		// bypass swing components
+		
+		@Override
+		protected File chooseFolder(final String title, final String buttonText) {
+			return folders.hasNext() ? folders.next() : null;
 		}
 	}
 }

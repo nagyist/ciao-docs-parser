@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -24,122 +23,45 @@ import uk.nhs.ciao.docs.parser.DocumentParser;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 
 /**
  * Application to parse and extract property values from discharge summary PDF documents
  */
-public class KingsDischargeSummaryParser implements Runnable {
+public abstract class KingsDischargeSummaryParser implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(KingsDischargeSummaryParser.class);
 	
+	/**
+	 * Runs the parser
+	 * <p>
+	 * With two or more arguments (inputFolder, outputFolder), the parser is run in Console mode.
+	 * Otherwise the parser is run in GUI mode using folder choosers
+	 */
 	public static void main(final String[] args) throws Exception {
 		final ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("/uk/nhs/ciao/docs/parser/kings/beans.xml");
 		
 		try {
+			final KingsDischargeSummaryParser parser;
 			if (args.length < 2) {
-				runGuiApp(applicationContext);
+				parser = new GUI(applicationContext);
 			} else {
-				runConsoleApp(applicationContext, args);
+				parser = new Console(applicationContext, args);
 			}
+			parser.run();
 		} finally {
 			applicationContext.close();
 		}
 	}
 	
-	/**
-	 * Runs the parser in console mode - the first two arguments are the 
-	 * inputFolder and the outputFolder
-	 */
-	private static void runConsoleApp(final ApplicationContext applicationContext, final String[] args) throws Exception {
-		final File inputFolder = new File(args[0]);
-		final File outputFolder = new File(args[1]);
-		final Listener listener = new Listener();
-		new KingsDischargeSummaryParser(applicationContext, listener, inputFolder, outputFolder).run();
-	}
-	
-	/**
-	 * Runs the parser in GUI mode - the inputFolder and outputFolder are determined
-	 * via GUI file choosers
-	 */
-	private static void runGuiApp(final ApplicationContext applicationContext) throws Exception {
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setMultiSelectionEnabled(false);
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		
-		chooser.setDialogTitle("Select input folder (PDF)");
-		if (chooser.showDialog(null, "Select input") == JFileChooser.CANCEL_OPTION) {
-			LOGGER.info("Input folder selection was cancelled");
-			return;
-		}		
-		final File inputFolder = chooser.getSelectedFile();
-		
-		chooser.setDialogTitle("Select output folder (TXT)");
-		if (chooser.showDialog(null, "Select output") == JFileChooser.CANCEL_OPTION) {
-			LOGGER.info("Output folder selection was cancelled");
-			return;
-		}
-		final File outputFolder = chooser.getSelectedFile();
-		
-		final Listener listener = new Listener() {
-			@Override
-			public void completed(final int fileCount, final  File outputFolder) {
-				super.completed(fileCount, outputFolder);
-				
-				final String message = String.format("Parsed %s files - check %s for the output",
-						fileCount, outputFolder);
-				showDialog(message);
-			}
-		};
-		new KingsDischargeSummaryParser(applicationContext, listener, inputFolder, outputFolder).run();
-	}
-	
-	/**
-	 * Shows a GUI message dialog
-	 */
-	private static void showDialog(final String message) {
-		final JOptionPane pane = new JOptionPane(message);
-		final JDialog dialog = pane.createDialog("Parsing complete");
-		dialog.setVisible(true);
-		dialog.dispose();
-	}
-	
-	/**
-	 * Listens to events that occur while running a parse
-	 * <p>
-	 * Default behaviour is to log details of the event
-	 */
-	public static class Listener {
-		public void fileParseStarted(final File file) {
-			LOGGER.info("Parsing file: {}", file);
-		}
-		
-		public void completed(final int fileCount, final File outputFolder) {
-			LOGGER.info("Parsed {} files - check {} for the output",
-					fileCount, outputFolder);
-		}
-	}
-	
-	private final Listener listener;
-	private final File inputFolder;
-	private final File outputFolder;
 	private final DocumentParser documentParser;
 	private final ObjectMapper objectMapper;
 	
-	public KingsDischargeSummaryParser(final ApplicationContext applicationContext, final Listener listener,
-			final File inputFolder, final File outputFolder) throws ParserConfigurationException {
-		this.listener = Preconditions.checkNotNull(listener);
-		this.inputFolder = Preconditions.checkNotNull(inputFolder);
-		this.outputFolder = Preconditions.checkNotNull(outputFolder);
-		
-		Preconditions.checkState(inputFolder.isDirectory());
-		outputFolder.mkdirs();
-		Preconditions.checkState(outputFolder.isDirectory());
-		
+	public KingsDischargeSummaryParser(final ApplicationContext applicationContext) throws ParserConfigurationException {
 		documentParser = applicationContext.getBean("documentParser", DocumentParser.class);
 		objectMapper = new ObjectMapper();
 	}
+	
+	protected abstract File getInputFolder();
+	protected abstract File getOutputFolder();
 	
 	/**
 	 * Runs the parser
@@ -151,21 +73,52 @@ public class KingsDischargeSummaryParser implements Runnable {
 	public void run() {
 		int count = 0;
 		
+		final File inputFolder = getInputFolder();
+		if (!isValidFolder(inputFolder)) {
+			return;
+		}
+		
+		final File outputFolder = getOutputFolder();
+		if (!isValidFolder(outputFolder)) {
+			return;
+		}
+		
 		for (final File file: inputFolder.listFiles()) {			
-			if (parseInputFile(file)) {
+			if (parseInputFile(file, outputFolder)) {
 				count++;
 			}
 		}
 		
-		listener.completed(count, outputFolder.getAbsoluteFile());
+		completed(count, outputFolder.getAbsoluteFile());
 	}
 	
-	private boolean parseInputFile(final File file) {
+	private boolean isValidFolder(final File folder) {
+		if (folder == null) {
+			return false;
+		} else if (!folder.exists()) {
+			folder.mkdirs();
+		}
+		
+		return folder.isDirectory();
+	}
+	
+	// listener methods
+	
+	protected void fileParseStarted(final File file) {
+		LOGGER.info("Parsing file: {}", file);
+	}
+	
+	protected void completed(final int fileCount, final File outputFolder) {
+		LOGGER.info("Parsed {} files - check {} for the output",
+				fileCount, outputFolder);
+	}
+	
+	private boolean parseInputFile(final File file, final File outputFolder) {
 		if (!file.isFile() || !file.canRead()) {
 			return false;
 		}
 		
-		listener.fileParseStarted(file);
+		fileParseStarted(file);
 		
 		boolean parsedFile = false;
 		InputStream in = null;
@@ -224,6 +177,87 @@ public class KingsDischargeSummaryParser implements Runnable {
 			} catch (IOException e) {
 				LOGGER.debug("IOException while closing resource", e);
 			}
+		}
+	}
+	
+	public static class Console extends KingsDischargeSummaryParser {
+		private final File inputFolder;
+		private final File outputFolder;
+		
+		public Console(final ApplicationContext applicationContext, final String[] args) throws ParserConfigurationException {
+			super(applicationContext);
+			
+			this.inputFolder = new File(args[0]);
+			this.outputFolder = new File(args[1]);
+		}
+		
+		@Override
+		protected File getInputFolder() {
+			return inputFolder;
+		}
+		
+		@Override
+		protected File getOutputFolder() {
+			return outputFolder;
+		}
+	}
+	
+	public static class GUI extends KingsDischargeSummaryParser {
+		public GUI(final ApplicationContext applicationContext) throws Exception {
+			super(applicationContext);
+			
+			initLookAndFeel();
+		}
+		
+		@Override
+		protected File getInputFolder() {
+			final File inputFolder = chooseFolder("Select input folder (PDF)", "Select input");
+			if (inputFolder == null) {
+				LOGGER.info("Input folder selection was cancelled");
+			}
+			return inputFolder;
+		}
+		
+		@Override
+		protected File getOutputFolder() {
+			final File outputFolder = chooseFolder("Select output folder (TXT)", "Select output");
+			if (outputFolder == null) {
+				LOGGER.info("Output folder selection was cancelled");
+			}
+			return outputFolder;
+		}
+		
+		@Override
+		public void completed(final int fileCount, final  File outputFolder) {
+			super.completed(fileCount, outputFolder);
+			
+			final String message = String.format("Parsed %s files - check %s for the output",
+					fileCount, outputFolder);
+			showDialog("Parsing complete", message);
+		}
+		
+		protected void initLookAndFeel() throws Exception {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		
+		protected File chooseFolder(final String title, final String buttonText) {
+			final JFileChooser chooser = new JFileChooser();
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			
+			chooser.setDialogTitle(title);
+			if (chooser.showDialog(null, buttonText) == JFileChooser.CANCEL_OPTION) {
+				return null;
+			}
+			
+			return chooser.getSelectedFile();
+		}
+		
+		/**
+		 * Shows a GUI message dialog
+		 */
+		protected void showDialog(final String title, final String message) {
+			JOptionPane.showMessageDialog(null, title, message, JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 }

@@ -12,6 +12,6 @@ import org.junit.Test;
 public class KingsDischargeSummaryParserConsoleTest extends KingsDischargeSummaryParserTestBase {	
 	@Test
 	public void testPdfExamplesWithConsole() throws Exception {
-		runTest(inputFolder.getPath(), outputFolder.getPath());
+		runMainTest(inputFolder.getPath(), outputFolder.getPath());
 	}
 }
