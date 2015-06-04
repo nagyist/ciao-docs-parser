@@ -52,7 +52,7 @@ public class DocumentParserProcessor implements Processor {
 		LOGGER.debug("process: {}", exchange);
 		
 		final Document originalDocument = toDocument(exchange.getIn());		
-		final InputStream inputStream = originalDocument.getStream();
+		final InputStream inputStream = originalDocument.getContentStream();
 		
 		try {
 			final Map<String, Object> properties = parser.parseDocument(inputStream);

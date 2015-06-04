@@ -2,6 +2,8 @@ package uk.nhs.ciao.docs.parser;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -9,7 +11,9 @@ import com.google.common.base.Preconditions;
  * The result of parsing a document into a collection of key/value properties.
  * <p>
  * When serialising instances of the class, Jackson uses the JavaBean accessors
- * of this class to determine which JSON properties to include.
+ * of this class to determine which JSON properties to include. During
+ * unmashalling the annotated constructor of this class is used to determine
+ * the JSON to Java properties mapping.
  */
 public class ParsedDocument {
 	private final Document originalDocument;
@@ -22,7 +26,9 @@ public class ParsedDocument {
 	 * @param originalDocument The document that was parsed
 	 * @param properties The extracted properties
 	 */
-	public ParsedDocument(final Document originalDocument, final Map<String, Object> properties) {
+	@JsonCreator
+	public ParsedDocument(@JsonProperty("originalDocument") final Document originalDocument,
+			@JsonProperty("properties") final Map<String, Object> properties) {
 		this.originalDocument = Preconditions.checkNotNull(originalDocument);
 		this.properties = Preconditions.checkNotNull(properties);
 	}
