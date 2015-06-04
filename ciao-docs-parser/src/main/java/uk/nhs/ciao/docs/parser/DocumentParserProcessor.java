@@ -78,7 +78,6 @@ public class DocumentParserProcessor implements Processor {
 	 * @return The associated document instance
 	 */
 	public static Document toDocument(final Message message) {
-		System.out.println(message.getHeaders());
 		final String name = message.getHeader(Exchange.FILE_NAME, String.class);
 		final byte[] body = message.getBody(byte[].class);
 		
