@@ -8,9 +8,7 @@
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	
-	<groupId>uk.nhs.ciao</groupId>
 	<artifactId>ciao-docs-parser-parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<description>Parent module for ciao-docs-parser</description>
