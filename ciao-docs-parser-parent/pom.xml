@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>../ciao-docs-parser-core</module>
+		<module>../ciao-docs-parser-model</module>
 		<module>../ciao-docs-parser-kings</module>
 		<module>../ciao-docs-parser</module>
 	</modules>
@@ -31,6 +32,12 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>ciao-docs-parser-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>ciao-docs-parser-model</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

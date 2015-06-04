@@ -3,13 +3,9 @@ package uk.nhs.ciao.docs.parser;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.Message;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 /**
  * Represents the binary content of a named document.
@@ -86,28 +82,5 @@ public class Document {
 				.add("name", name)
 				.add("size", content.length)
 				.toString();
-	}
-	
-	/**
-	 * Returns a document instance corresponding to the specified Camel message
-	 * <p>
-	 * The camel FILE_NAME header is used as the document name
-	 * 
-	 * @param message The camel message representation of the document
-	 * @return The associated document instance
-	 */
-	public static Document valueOf(final Message message) {
-		System.out.println(message.getHeaders());
-		final String name = message.getHeader(Exchange.FILE_NAME, String.class);
-		final byte[] body = message.getBody(byte[].class);
-		
-		final Document document = new Document(name, body);
-		
-		final String mediaType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
-		if (!Strings.isNullOrEmpty(mediaType)) {
-			document.setMediaType(mediaType);
-		}
-		
-		return document;
 	}
 }
