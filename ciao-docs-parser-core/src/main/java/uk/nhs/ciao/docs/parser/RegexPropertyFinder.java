@@ -13,6 +13,7 @@ import com.google.common.base.Preconditions;
 public class RegexPropertyFinder {
 	private final String name;
 	private final Pattern pattern;
+	private final PropertyConverter converter;
 	
 	/**
 	 * Creates a new named property finder backed by the specified regex
@@ -23,8 +24,22 @@ public class RegexPropertyFinder {
 	 * @param pattern The pattern which will match the property value
 	 */
 	public RegexPropertyFinder(final String name, final Pattern pattern) {
+		this(name, pattern, NoopPropertyConverter.getInstance());
+	}
+	
+	/**
+	 * Creates a new named property finder backed by the specified regex
+	 * <p>
+	 * The value to extract should be specified as group(1) in the pattern
+	 * 
+	 * @param name The name of the property to find
+	 * @param pattern The pattern which will match the property value
+	 * @param converter The (optional) converter to use when a property value is found
+	 */
+	public RegexPropertyFinder(final String name, final Pattern pattern, final PropertyConverter converter) {
 		this.name = Preconditions.checkNotNull(name);
 		this.pattern = Preconditions.checkNotNull(pattern);
+		this.converter = converter == null ? NoopPropertyConverter.getInstance() : converter;
 	}
 	
 	/**
@@ -42,7 +57,8 @@ public class RegexPropertyFinder {
 	 */
 	public String findValue(final String text) {
 		final Matcher matcher = pattern.matcher(text);
-		return matcher.find() ? matcher.group(1).trim() : "";
+		final String value = matcher.find() ? matcher.group(1).trim() : "";
+		return converter.convertProperty(text, value);
 	}
 	
 	@Override
@@ -74,6 +90,7 @@ public class RegexPropertyFinder {
 		private final String name;
 		private String startLiteral;
 		private String endLiteral;
+		private PropertyConverter converter;
 
 		/**
 		 * Creates a new builder with the specified name / start token
@@ -81,6 +98,7 @@ public class RegexPropertyFinder {
 		private Builder(final String name) {
 			this.name = Preconditions.checkNotNull(name);
 			this.startLiteral = name;
+			this.converter = NoopPropertyConverter.getInstance();
 		}
 		
 		/**
@@ -96,6 +114,14 @@ public class RegexPropertyFinder {
 		 */
 		public Builder to(final String endLiteral) {
 			setEndLiteral(endLiteral);
+			return this;
+		}
+		
+		/**
+		 * Specifies the property value converter to use
+		 */
+		public Builder convert(final PropertyConverter converter) {
+			setConverter(converter);
 			return this;
 		}
 		
@@ -116,13 +142,21 @@ public class RegexPropertyFinder {
 		}
 		
 		/**
+		 * Specifies the property value converter to use
+		 */
+		// bean setter for spring
+		public void setConverter(final PropertyConverter converter) {
+			this.converter = converter == null ? NoopPropertyConverter.getInstance() : converter;
+		}
+		
+		/**
 		 * Builds a new property finder based on the configured properties
 		 * <p>
 		 * A structure of <code>{startLiteral} : {value} {endLiteral}</code> is
 		 * used when generating the regex pattern
 		 */
 		public RegexPropertyFinder build() {
-			return new RegexPropertyFinder(name, compilePattern());
+			return new RegexPropertyFinder(name, compilePattern(), converter);
 		}
 
 		/**

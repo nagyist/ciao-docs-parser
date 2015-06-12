@@ -1,6 +1,7 @@
 package uk.nhs.ciao.docs.parser.kings;
 
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
+import uk.nhs.ciao.docs.parser.DatePropertyConverter;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 
@@ -35,13 +36,15 @@ public class KingsPropertiesExtractorFactory {
 	public static RegexPropertiesExtractor createEDDischargeExtractor() {
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
+		final DatePropertyConverter dateConverter = new DatePropertyConverter("dd/MM/yyyy");
+		
 		extractor.addPropertyFinders(
-				builder("Re").to("ED No").build(),
+				builder("patientFullName").from("Re").to("ED No").build(),
 				builder("ED No").to("DOB").build(),
-				builder("DOB").to("Hosp No").build(),
+				builder("patientBirthDate").from("DOB").to("Hosp No").convert(dateConverter).build(),
 				builder("Hosp No").to("Address").build(),
 				builder("Address").to("NHS No").build(),
-				builder("NHS No").to("The patient").build(),
+				builder("patientNHSNo").from("NHS No").to("The patient").build(),
 				builder("Seen By").to("Investigations").build(),
 				builder("Investigations").to("Working Diagnosis").build(),
 				builder("Working Diagnosis").to("Referrals").build(),
@@ -78,14 +81,16 @@ public class KingsPropertiesExtractorFactory {
 	public static RegexPropertiesExtractor createDischargeNotificationExtractor() {		
 		final RegexPropertiesExtractor extractor = new RegexPropertiesExtractor();
 		
+		final DatePropertyConverter dateConverter = new DatePropertyConverter("dd-MMM-yyyy");
+		
 		extractor.addPropertyFinders(
 				builder("Ward").to("Hospital Number").build(),
 				builder("Hospital Number").to("NHS Number").build(),
-				builder("NHS Number").to("Ward Tel").build(),
+				builder("patientNHSNo").from("NHS Number").to("Ward Tel").build(),
 				builder("Ward Tel").to("Patient Name").build(),
-				builder("Patient Name").to("Consultant").build(),
+				builder("patientFullName").from("Patient Name").to("Consultant").build(),
 				builder("Consultant").to("D.O.B").build(),
-				builder("D.O.B").to("Speciality").build(),
+				builder("patientBirthDate").from("D.O.B").to("Speciality").convert(dateConverter).build(),
 				builder("Speciality").to("Date of Admission").build(),
 				builder("Date of Admission").to("Discharged by").build(),
 				builder("Discharged by").to("Date of Discharge").build(),
