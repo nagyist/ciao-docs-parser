@@ -207,4 +207,4 @@ The CIP requires access to various file system directories and network ports (de
 
 **Filesystem**:
  -  If etcd is not available, CIAO properties will be loaded from: `~/.ciao/`
- -  The default configuration creates input and output folders in the CIP working directory. These can be altered by changing the CIAO properties configuration (via etcd, or via `~/.ciao/`)
+ -  The default configuration creates/uses `input`, `completed`, and `error` directories in the CIP working directory. These can be altered by changing the CIAO properties configuration (via etcd, or the properties file in `~/.ciao/`)
