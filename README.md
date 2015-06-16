@@ -46,6 +46,7 @@ The following properties extractors are provided:
 For more advanced usages, a custom document parser can be integrated by
 implementing parser Java interfaces and providing a suitable spring
 XML configuration on the classpath.
+
 Configuration
 -------------
 
@@ -177,3 +178,33 @@ documentParserRoutes.auto-detect.completedFolder=../../completed/auto-detect
 documentParserRoutes.auto-detect.errorFolder=../../error/auto-detect
 documentParserRoutes.auto-detect.processorId=autoDetectProcessor
 ```
+
+Building and Running
+--------------------
+
+To pull down the code, run:
+
+	git clone https://github.com/nhs-ciao/ciao-docs-parser.git
+	
+You can then compile the module via:
+
+    cd ciao-docs-parser-parent
+	mvn clean install -P bin-archive
+
+This will compile a number of related modules - the main CIP module is `ciao-docs-parser`, and the full binary archive (with dependencies) can be found at `ciao-docs-parser\target\ciao-docs-parser-{version}-bin.zip`. To run the application, unpack this zip to a directory of your choosing and follow the instructions in the README.txt.
+
+The CIP requires access to various file system locations and network ports (dependant on the selected components):
+
+**etcd**:
+ -  Connects to: `localhost:2379`
+
+**ActiveMQ**:
+ -  Connects to: `localhost:61616`
+
+**Hazelcast**:
+ -  Multicast discovery: `224.2.2.3:54327`
+ -  Listens on: `*:5701` (If port is already taken, the port number is incremented until a free port is found)
+
+**Filesystem**:
+ -  If etcd is not available, CIAO properties will be loaded from: `~/.ciao/`
+ -  The default configuration creates input and output folders in the application working directory. These can be altered by changing the CIAO properties configuration (via etcd, or via `~/.ciao/`)
