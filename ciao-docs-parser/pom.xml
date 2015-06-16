@@ -11,6 +11,12 @@
   <artifactId>ciao-docs-parser</artifactId>
   <packaging>jar</packaging>
 
+  <properties>
+  	<ciao.skipBinArchive>false</ciao.skipBinArchive>
+	<ciao.addClasspath>true</ciao.addClasspath>
+	<ciao.main>uk.nhs.ciao.docs.parser.DocumentParserApplication</ciao.main>
+  </properties>
+
   <dependencies>
   	<dependency>
 		<groupId>${project.groupId}</groupId>
@@ -59,16 +65,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-		  <groupId>org.apache.camel</groupId>
-		  <artifactId>camel-maven-plugin</artifactId>
-		  <configuration>
-		    <mainClass>uk.nhs.ciao.docs.parser.DocumentParserApplication</mainClass>
-		  </configuration>
-	  </plugin>
-    </plugins>
-  </build>
 </project>
