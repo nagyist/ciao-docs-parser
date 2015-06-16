@@ -101,7 +101,7 @@ public class DocumentParserProcessor implements Processor {
 		
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> metadata = (Map<String, Object>) properties.get(PropertyNames.METADATA);
-		final Object mediaType = metadata.get(PropertyNames.METADATA);
+		final Object mediaType = metadata.get(PropertyNames.CONTENT_TYPE);
 		if (mediaType instanceof String) {				
 			originalDocument.setMediaType((String)mediaType);
 		}
