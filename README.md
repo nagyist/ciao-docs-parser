@@ -191,9 +191,9 @@ You can then compile the module via:
     cd ciao-docs-parser-parent
 	mvn clean install -P bin-archive
 
-This will compile a number of related modules - the main CIP module is `ciao-docs-parser`, and the full binary archive (with dependencies) can be found at `ciao-docs-parser\target\ciao-docs-parser-{version}-bin.zip`. To run the application, unpack this zip to a directory of your choosing and follow the instructions in the README.txt.
+This will compile a number of related modules - the main CIP module is `ciao-docs-parser`, and the full binary archive (with dependencies) can be found at `ciao-docs-parser\target\ciao-docs-parser-{version}-bin.zip`. To run the CIP, unpack this zip to a directory of your choosing and follow the instructions in the README.txt.
 
-The CIP requires access to various file system locations and network ports (dependant on the selected components):
+The CIP requires access to various file system directories and network ports (dependent on the selected configuration):
 
 **etcd**:
  -  Connects to: `localhost:2379`
@@ -207,4 +207,4 @@ The CIP requires access to various file system locations and network ports (depe
 
 **Filesystem**:
  -  If etcd is not available, CIAO properties will be loaded from: `~/.ciao/`
- -  The default configuration creates input and output folders in the application working directory. These can be altered by changing the CIAO properties configuration (via etcd, or via `~/.ciao/`)
+ -  The default configuration creates input and output folders in the CIP working directory. These can be altered by changing the CIAO properties configuration (via etcd, or via `~/.ciao/`)
