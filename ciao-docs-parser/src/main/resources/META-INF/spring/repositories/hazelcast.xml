@@ -6,7 +6,19 @@
 	
 	<bean id="hazelcastInstance" class="com.hazelcast.core.Hazelcast" factory-method="newHazelcastInstance">
 	  <constructor-arg>
-	    <bean class="com.hazelcast.config.Config" />
+	    <bean class="com.hazelcast.config.Config">
+	    	<!-- Enable time to live eviction on the repository - an alternative to readLockRemoveOnCommit for Camel versions before 2.16 -->
+	    	<property name="mapConfigs">
+	    		<map>
+	    			<entry key="idempotentRepository">
+	    				<bean class="com.hazelcast.config.MapConfig">
+	    					<property name="name" value="idempotentRepository" />
+	    					<property name="timeToLiveSeconds" value="120" />
+	    				</bean>
+	    			</entry>
+	    		</map>
+	    	</property>
+	    </bean>
 	  </constructor-arg>
 	</bean>	
 	
