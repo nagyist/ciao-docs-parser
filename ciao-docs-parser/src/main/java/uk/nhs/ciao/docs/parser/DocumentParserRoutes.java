@@ -40,11 +40,14 @@ import uk.nhs.ciao.exceptions.CIAOConfigurationException;
  * <dt>outputQueue<dt>
  * <dd>The name of the queue output messages should be sent to</dd>
  * 
+ * <dt>inProgressFolder<dt>
+ * <dd>The file path (absolute or relative to the working directory) where parsed input files should be moved to while they are being processed</dd>
+ * 
  * <dt>completedFolder<dt>
- * <dd>The file path (absolute or relative to inputFolder) where successfully processed input files should be moved to</dd>
+ * <dd>The file path (absolute or relative to the working directory) where successfully parsed and fully processed files should be moved to</dd>
  * 
  * <dt>errorFolder<dt>
- * <dd>The file path (absolute or relative to inputFolder) where non process-able input files should be moved to</dd>
+ * <dd>The file path (absolute or relative to the working directory) where non process-able input files should be moved to</dd>
  * 
  * <dt>idempotentRepositoryId<dt>
  * <dd>The spring ID of the {@link IdempotentRepository} to use for the input folders idempotentRepository</dd>
