@@ -62,6 +62,7 @@ public class DocumentParserProcessor implements Processor {
 			
 			final Message outputMessage = exchange.getOut();
 			final ParsedDocument parsedDocument = new ParsedDocument(originalDocument, properties);
+			outputMessage.copyFrom(exchange.getIn());			
 			outputMessage.setBody(parsedDocument);
 			outputMessage.setHeader(Exchange.FILE_NAME, originalDocument.getName());
 		} finally {

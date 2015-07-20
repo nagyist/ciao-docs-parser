@@ -1,5 +1,10 @@
 package uk.nhs.ciao.docs.parser;
 
+import static uk.nhs.ciao.docs.parser.ParsedDocumentHeaders.*;
+
+import java.io.File;
+import java.util.UUID;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.dataformat.JsonLibrary;
@@ -100,6 +105,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 		private final String processorId;
 		private final String outputQueue;
 		private final String completedFolder;
+		private final String inProgressFolder;
 		private final String errorFolder;
 		private final String idempotentRepositoryId;
 		private final String inProgressRepositoryId;
@@ -115,7 +121,8 @@ public class DocumentParserRoutes extends CIPRoutes {
 			this.inputFolder = findProperty(config, "inputFolder");
 			this.processorId = findProperty(config, "processorId");
 			this.outputQueue = findProperty(config, "outputQueue");
-			this.completedFolder = findProperty(config, "completedFolder");			
+			this.completedFolder = findProperty(config, "completedFolder");
+			this.inProgressFolder = findProperty(config, "inProgressFolder");
 			this.errorFolder = findProperty(config, "errorFolder");
 			this.idempotentRepositoryId = findProperty(config, "idempotentRepositoryId");
 			this.inProgressRepositoryId = findProperty(config, "inProgressRepositoryId");
@@ -148,16 +155,43 @@ public class DocumentParserRoutes extends CIPRoutes {
 					"idempotentRepository=#" + idempotentRepositoryId + "&" +
 					"inProgressRepository=#" + inProgressRepositoryId + "&" +
 					"readLock=idempotent&" +
-					"move=" + completedFolder + "/${date:now:yyyy/MM/dd/HH-mm-SS}-${file:name}&" +
-					"moveFailed=" + errorFolder + "/${date:now:yyyy/MM/dd/HH-mm-SS}-${file:name}")
+//					"delete=true&" + // file is initially copied into the in-progress directory
+//					"move=&" + // disables move when completed - this will be handled by a later component when all processing is completed
+					"move=${header." + IN_PROGRESS_FOLDER + "}/${file:name}&" +
+					"moveFailed=${header." + ERROR_FOLDER + "}/${file:name}")
 			.id("parse-document-" + name)
+
+			// Generate the standard parsed document headers
+			.setHeader(TIMESTAMP, method(System.class, "currentTimeMillis()"))
+			.setHeader(Exchange.CORRELATION_ID, method(DocumentParserRoutes.class, "generateId()"))
+			.setHeader(SOURCE_FILE_NAME, simple("${file:onlyname}"))
+			.setHeader(IN_PROGRESS_FOLDER, simple(inProgressFolder))
+			.setHeader(COMPLETED_FOLDER, simple(completedFolder))
+			.setHeader(ERROR_FOLDER, simple(errorFolder))
+			
+			// Ensure that any relative paths are converted to absolute paths (for later CIPs/components)
+			.setHeader(IN_PROGRESS_FOLDER, method(DocumentParserRoutes.class, "getAbsolutePath(${header." + IN_PROGRESS_FOLDER + "})"))
+			.setHeader(COMPLETED_FOLDER, method(DocumentParserRoutes.class, "getAbsolutePath(${header." + COMPLETED_FOLDER + "})"))
+			.setHeader(ERROR_FOLDER, method(DocumentParserRoutes.class, "getAbsolutePath(${header." + ERROR_FOLDER + "})"))
+			
 			.streamCaching()
 			.doTry()
-				.processRef(processorId)				
-				.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
-				.marshal().json(JsonLibrary.Jackson)
-				.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
-				.to("jms:queue:" + outputQueue)
+//				.multicast()
+					// First create a copy in the in-progress folder
+					// The file2 preMove option cannot be used because context specific properties and
+					// headers need to be evaluated *before* the move can take place
+//					.to("file://?fileName=${header." + IN_PROGRESS_FOLDER + "}/${file:name}")
+					
+					// Then process the file in a standard pipeline
+//					.pipeline()
+						.processRef(processorId)	
+						.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
+						.marshal().json(JsonLibrary.Jackson)
+						.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
+						.to("jms:queue:" + outputQueue)
+//					.end()
+//				.end()
+			.endDoTry()
 			.doCatch(UnsupportedDocumentTypeException.class)
 				.log(LoggingLevel.INFO, LOGGER, "Unsupported document type: ${file:name}")
 				.handled(false)
@@ -166,5 +200,22 @@ public class DocumentParserRoutes extends CIPRoutes {
 				.to("log:" + LOGGER.getName() + "?level=ERROR&showCaughtException=true")
 				.handled(false);
 		}
+	}
+	
+	/**
+	 * Generates a unique ID to represent the processing of a document
+	 */
+	public static String generateId() {
+		return UUID.randomUUID().toString();
+	}
+	
+	/**
+	 * Returns the absolute path associated with the specified file path.
+	 * <p>
+	 * If <code>path</code> is relative, the current working directory is used to resolve
+	 * the absolute path
+	 */
+	public static String getAbsolutePath(final String path) {
+		return new File(path).getAbsolutePath();
 	}
 }
