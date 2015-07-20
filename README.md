@@ -143,6 +143,16 @@ individual properties of that route.
 
 -   `outputQueue` - Selects which queue to publish parsed documents to
 
+**Folder Configuration:**
+
+The `inProgressFolder`, `completedFolder`, and `errorFolder` route options can include [Camel Simple Language] (https://camel.apache.org/simple.html) expressions. The following additional headers can be referenced:
+
+- `CamelCorrelationId` - A unique ID associated with the processing of the source document
+
+- `ciaoSourceFileName` - The file name of the source document
+
+- `ciaoTimestamp` - The time processing was started expressed as a Unix timestamp (i.e. milliseconds since 1970)
+
 ### Example
 ```INI
 # Select which processor config to use (via dynamic spring imports)
