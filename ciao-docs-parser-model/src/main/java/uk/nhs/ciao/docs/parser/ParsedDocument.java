@@ -19,7 +19,7 @@ import com.google.common.base.Preconditions;
 public class ParsedDocument {
 	private final Document originalDocument;
 	private final Map<String, Object> properties;
-	private transient volatile StandardProperties standardProperties; // lazy-loaded
+	private volatile StandardProperties standardProperties; // lazy-loaded
 	
 	/**
 	 * Constructs a new parsed document from the specified original document
