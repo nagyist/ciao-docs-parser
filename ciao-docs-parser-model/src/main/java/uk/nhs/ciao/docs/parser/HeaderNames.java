@@ -1,9 +1,9 @@
 package uk.nhs.ciao.docs.parser;
 
 /**
- * Headers associated with the processing of a ParsedDocument
+ * Headers names associated with the processing of a ParsedDocument
  */
-public final class ParsedDocumentHeaders {
+public final class HeaderNames {
 	
 	/**
 	 * The unique ID associated with the processing of a parsed document
@@ -39,7 +39,7 @@ public final class ParsedDocumentHeaders {
 	 */
 	public static final String COMPLETED_FOLDER = "ciaoCompletedFolder";
 	
-	private ParsedDocumentHeaders() {
+	private HeaderNames() {
 		// Suppress default constructor
 	}
 }

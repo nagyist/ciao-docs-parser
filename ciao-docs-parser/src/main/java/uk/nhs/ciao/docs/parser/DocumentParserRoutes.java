@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser;
 
-import static uk.nhs.ciao.docs.parser.ParsedDocumentHeaders.*;
+import static uk.nhs.ciao.docs.parser.HeaderNames.*;
 
 import java.io.File;
 import java.util.UUID;
