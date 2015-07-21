@@ -65,6 +65,7 @@ public class StandardProperties {
 			Map<String, Object> metadataMap;
 			if (metadataValue == null) {
 				metadataMap = Maps.<String, Object>newLinkedHashMap();
+				properties.put(METADATA, metadataMap);
 			} else if (metadataValue instanceof Map<?,?>) {
 				metadataMap = (Map<String, Object>)metadataValue;
 			} else {
