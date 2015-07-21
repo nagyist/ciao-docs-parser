@@ -158,8 +158,6 @@ public class DocumentParserRoutes extends CIPRoutes {
 					"idempotentRepository=#" + idempotentRepositoryId + "&" +
 					"inProgressRepository=#" + inProgressRepositoryId + "&" +
 					"readLock=idempotent&" +
-//					"delete=true&" + // file is initially copied into the in-progress directory
-//					"move=&" + // disables move when completed - this will be handled by a later component when all processing is completed
 					"move=${header." + IN_PROGRESS_FOLDER + "}/${file:name}&" +
 					"moveFailed=${header." + ERROR_FOLDER + "}/${file:name}")
 			.id("parse-document-" + name)
@@ -179,21 +177,11 @@ public class DocumentParserRoutes extends CIPRoutes {
 			
 			.streamCaching()
 			.doTry()
-//				.multicast()
-					// First create a copy in the in-progress folder
-					// The file2 preMove option cannot be used because context specific properties and
-					// headers need to be evaluated *before* the move can take place
-//					.to("file://?fileName=${header." + IN_PROGRESS_FOLDER + "}/${file:name}")
-					
-					// Then process the file in a standard pipeline
-//					.pipeline()
-						.processRef(processorId)	
-						.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
-						.marshal().json(JsonLibrary.Jackson)
-						.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
-						.to("jms:queue:" + outputQueue)
-//					.end()
-//				.end()
+				.processRef(processorId)
+				.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
+				.marshal().json(JsonLibrary.Jackson)
+				.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
+				.to("jms:queue:" + outputQueue)
 			.endDoTry()
 			.doCatch(UnsupportedDocumentTypeException.class)
 				.log(LoggingLevel.INFO, LOGGER, "Unsupported document type: ${file:name}")
