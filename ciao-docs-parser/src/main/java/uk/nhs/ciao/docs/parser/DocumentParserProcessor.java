@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.nhs.ciao.docs.parser.DocumentParser;
+import uk.nhs.ciao.docs.parser.StandardProperties.Metadata;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -96,15 +97,14 @@ public class DocumentParserProcessor implements Processor {
 	 * Updates the media type of the original document (if the parser has detected one)
 	 */
 	private void setOriginalDocumentMediaType(final Document originalDocument, final Map<String, Object> properties) {
-		if (properties == null || !properties.containsKey(PropertyNames.METADATA)) {
+		if (properties == null) {
 			return;
 		}
 		
-		@SuppressWarnings("unchecked")
-		final Map<String, Object> metadata = (Map<String, Object>) properties.get(PropertyNames.METADATA);
-		final Object mediaType = metadata.get(PropertyNames.CONTENT_TYPE);
-		if (mediaType instanceof String) {				
-			originalDocument.setMediaType((String)mediaType);
+		final Metadata metadata = new StandardProperties(properties).getMetadata();
+		final String mediaType = metadata.getContentType();
+		if (!Strings.isNullOrEmpty(mediaType)) {
+			originalDocument.setMediaType(mediaType);
 		}
 	}
 }

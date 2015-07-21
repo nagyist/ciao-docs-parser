@@ -3,6 +3,7 @@ package uk.nhs.ciao.docs.parser;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -18,6 +19,7 @@ import com.google.common.base.Preconditions;
 public class ParsedDocument {
 	private final Document originalDocument;
 	private final Map<String, Object> properties;
+	private transient volatile StandardProperties standardProperties; // lazy-loaded
 	
 	/**
 	 * Constructs a new parsed document from the specified original document
@@ -45,6 +47,22 @@ public class ParsedDocument {
 	 */
 	public Map<String, Object> getProperties() {
 		return properties;
+	}
+	
+	/**
+	 * A bean-like view of {@link #getProperties()} which exposes a set of standard properties
+	 * <p>
+	 * Any changes made are reflected on the underlying properties map.
+	 * 
+	 * @see PropertyNames
+	 */
+	@JsonIgnore
+	public StandardProperties getStandardProperties() {
+		if (standardProperties == null) {
+			standardProperties = new StandardProperties(properties);
+		}
+		
+		return standardProperties;
 	}
 	
 	@Override
