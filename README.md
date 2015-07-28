@@ -145,13 +145,15 @@ individual properties of that route.
 
 **Folder Configuration:**
 
-The `inProgressFolder`, `completedFolder`, and `errorFolder` route options can include [Camel Simple Language] (https://camel.apache.org/simple.html) expressions. The following additional headers can be referenced:
+The `completedFolder` and `errorFolder` route options can include [Camel Simple Language] (https://camel.apache.org/simple.html) expressions. The following additional headers can be referenced:
 
 - `CamelCorrelationId` - A unique ID associated with the processing of the source document
 
 - `ciaoSourceFileName` - The file name of the source document
 
 - `ciaoTimestamp` - The time processing was started expressed as a Unix timestamp (i.e. milliseconds since 1970)
+
+The `inProgressFolder` folder option does not support Simple expressions - instead this option should be specified as a standard file path (absolute or relative to the working directory). While a document is being processed, data relating to the processing will be stored in a sub-folder of inProgressFolder/{correlationId}.
 
 ### Example
 ```INI
@@ -176,24 +178,22 @@ documentParserRoutes=discharge-notification,ed-discharge,auto-detect
 
 # Setup 'shared' properties across all-routes
 documentParserRoutes.outputQueue=parsed-documents
+documentParserRoutes.inProgressFolder=./in-progress
 documentParserRoutes.idempotentRepositoryId=idempotentRepository
 documentParserRoutes.inProgressRepositoryId=inProgressRepository
 
 # Setup per-route properties (can override the shared properties)
 documentParserRoutes.discharge-notification.inputFolder=./input/discharge-notifications
-documentParserRoutes.discharge-notification.inProgressFolder=./in-progress/discharge-notifications/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.discharge-notification.completedFolder=./completed/discharge-notifications/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.discharge-notification.errorFolder=./error/discharge-notifications/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.discharge-notification.processorId=dischargeNotificationProcessor
 
 documentParserRoutes.ed-discharge.inputFolder=./input/ed-discharges
-documentParserRoutes.ed-discharge.inProgressFolder=./in-progress/ed-discharges/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.ed-discharge.completedFolder=./completed/ed-discharges/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.ed-discharge.errorFolder=./error/ed-discharges/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.ed-discharge.processorId=edDischargeProcessor
 
 documentParserRoutes.auto-detect.inputFolder=./input/auto-detect
-documentParserRoutes.auto-detect.inProgressFolder=./in-progress/auto-detect/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.auto-detect.completedFolder=./completed/auto-detect/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.auto-detect.errorFolder=./error/auto-detect/${date:now:yyyy-MM-dd}/${header.CamelCorrelationId}
 documentParserRoutes.auto-detect.processorId=autoDetectProcessor

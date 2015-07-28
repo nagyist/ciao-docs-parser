@@ -3,10 +3,13 @@ package uk.nhs.ciao.docs.parser;
 import static uk.nhs.ciao.docs.parser.HeaderNames.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Expression;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spi.IdempotentRepository;
 import org.slf4j.Logger;
@@ -166,7 +169,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 			.setHeader(TIMESTAMP, method(System.class, "currentTimeMillis()"))
 			.setHeader(Exchange.CORRELATION_ID, method(DocumentParserRoutes.class, "generateId()"))
 			.setHeader(SOURCE_FILE_NAME, simple("${file:onlyname}"))
-			.setHeader(IN_PROGRESS_FOLDER, simple(inProgressFolder))
+			.setHeader(IN_PROGRESS_FOLDER, concat(constant(inProgressFolder + File.separator), header(Exchange.CORRELATION_ID)))
 			.setHeader(COMPLETED_FOLDER, simple(completedFolder))
 			.setHeader(ERROR_FOLDER, simple(errorFolder))
 			
@@ -190,6 +193,10 @@ public class DocumentParserRoutes extends CIPRoutes {
 				.log(LoggingLevel.ERROR, LOGGER, "Exception while processing document: ${file:name}")
 				.to("log:" + LOGGER.getName() + "?level=ERROR&showCaughtException=true")
 				.handled(false);
+		}
+		
+		private Expression concat(final Expression... expressions) {
+			return ExpressionBuilder.concatExpression(Arrays.asList(expressions));
 		}
 	}
 	
