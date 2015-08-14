@@ -45,7 +45,7 @@ public class StandardProperties {
 			set(CONTENT_TYPE, contentType);
 		}
 		
-		private String get(final String name) {
+		public String get(final String name) {
 			String result = null;
 			
 			final Object metadataValue = properties.get(METADATA);
@@ -60,7 +60,7 @@ public class StandardProperties {
 		}
 		
 		@SuppressWarnings("unchecked")
-		private void set(final String name, final String value) {
+		public void set(final String name, final String value) {
 			Object metadataValue = properties.get(METADATA);
 			Map<String, Object> metadataMap;
 			if (metadataValue == null) {

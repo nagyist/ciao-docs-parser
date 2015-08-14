@@ -19,6 +19,11 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ciao-docs-parser-core</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ciao-core</artifactId>
+		</dependency>
 
 		<!-- For XML configuration / dependency injection -->
 		<dependency>
