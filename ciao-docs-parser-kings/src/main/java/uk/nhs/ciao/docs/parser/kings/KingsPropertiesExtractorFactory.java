@@ -2,17 +2,24 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 
+import com.google.common.collect.Lists;
+
 import uk.nhs.ciao.docs.parser.DatePropertyConverter;
 import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.PropertiesTransformer;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 
 /**
@@ -160,6 +167,28 @@ public class KingsPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::b[text()='Prescriber:']]/*/tr/td/p"),
 				new PropertyTableExtractor());
 		
-		return new NodeStreamToDocumentPropertiesExtractor(splitter);
+		
+		// TODO: example property transformation - perhaps these can be configured via a resource or spring etc?
+		final PropertiesTransformer transformer = new PropertiesTransformer();
+		transformer.renameProperty("NHS Number", "patientNHSNo");
+		
+		final List<PropertiesExtractor<Map<String, Object>>> additionalExtractors = Lists.newArrayList();
+		additionalExtractors.add(transformer);
+		
+		return new NodeStreamToDocumentPropertiesExtractor(chain(splitter, additionalExtractors));
+	}
+	
+	private static <T> PropertiesExtractor<T> chain(final PropertiesExtractor<T> firstExtractor, final List<PropertiesExtractor<Map<String, Object>>> additionalExtractors) {
+		return new PropertiesExtractor<T>() {
+			@Override
+			public Map<String, Object> extractProperties(final T document)
+					throws UnsupportedDocumentTypeException {
+				Map<String, Object> properties = firstExtractor.extractProperties(document);
+				for (final PropertiesExtractor<Map<String, Object>> extractor: additionalExtractors) {
+					properties = extractor.extractProperties(properties);
+				}
+				return properties;
+			}
+		};
 	}
 }

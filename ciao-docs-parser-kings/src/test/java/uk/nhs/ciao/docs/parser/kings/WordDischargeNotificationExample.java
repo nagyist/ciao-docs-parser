@@ -1,5 +1,7 @@
 package uk.nhs.ciao.docs.parser.kings;
 
+import java.util.Map;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -16,12 +18,14 @@ public class WordDischargeNotificationExample {
 		
 		final PropertiesExtractor<Document> extractor = KingsPropertiesExtractorFactory.createWordDischargeNotificationExtractor();
 		
+		final int iterations = 1;//000;
 		long start = System.nanoTime();
 		final WordDischargeNotificationExample example = new WordDischargeNotificationExample(document, extractor);
-		for (int i = 0; i < 1000; i++) {
-			example.run();
+		for (int i = 0; i < iterations; i++) {
+//			example.run();
+			System.out.println(example.run());
 		}
-		System.out.println("Time per extraction: " + ((long)((double)(System.nanoTime() - start)  / (1000000d * 1000))) + " ms");
+		System.out.println("Time per extraction: " + ((long)((double)(System.nanoTime() - start)  / (1000000d * iterations))) + " ms");
 	}
 	
 	private final Document document;
@@ -32,7 +36,7 @@ public class WordDischargeNotificationExample {
 		this.extractor = extractor;
 	}
 	
-	public void run() throws Exception {
-		extractor.extractProperties(document);
+	public Map<String, Object> run() throws Exception {
+		return extractor.extractProperties(document);
 	}
 }
