@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.util.Whitespace.collapseAndTrimWhitespace;
+import static uk.nhs.ciao.util.Whitespace.collapseWhitespaceAndTrim;
 
 import java.util.Map;
 
