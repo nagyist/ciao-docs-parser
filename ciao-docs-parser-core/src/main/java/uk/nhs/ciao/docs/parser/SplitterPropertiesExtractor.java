@@ -1,4 +1,4 @@
-package uk.nhs.ciao.docs.parser.rule;
+package uk.nhs.ciao.docs.parser;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import com.google.common.collect.Maps;
 
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
-import uk.nhs.ciao.docs.parser.rule.NodeStream.Mark;
+import uk.nhs.ciao.docs.parser.NodeStream.Mark;
 import uk.nhs.ciao.util.TreeMerge;
 
 public class SplitterPropertiesExtractor implements PropertiesExtractor<NodeStream> {

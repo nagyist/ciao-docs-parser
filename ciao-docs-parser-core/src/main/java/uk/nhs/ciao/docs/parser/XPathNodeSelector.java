@@ -1,4 +1,4 @@
-package uk.nhs.ciao.docs.parser.rule;
+package uk.nhs.ciao.docs.parser;
 
 import java.util.List;
 

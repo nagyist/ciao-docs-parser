@@ -1,9 +1,19 @@
 package uk.nhs.ciao.docs.parser.kings;
 
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.Document;
+
 import uk.nhs.ciao.docs.parser.DatePropertyConverter;
+import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 
 /**
  * Factory to create {@link PropertiesExtractor}s capable of
@@ -109,5 +119,47 @@ public class KingsPropertiesExtractorFactory {
 		extractor.setTextFilter("Ward", "GP");
 		
 		return extractor;
+	}
+	
+	/**
+	 * Creates an extractor which extracts properties from a MS Word format discharge notification
+	 * <p>
+	 * The default XPathFactory is used
+	 * 
+	 * @see #createWordDischargeNotificationExtractor(XPath)
+	 */
+	public static PropertiesExtractor<Document> createWordDischargeNotificationExtractor() throws XPathExpressionException {
+		final XPath xpath = XPathFactory.newInstance().newXPath();
+		return createWordDischargeNotificationExtractor(xpath);
+	}
+	
+	/**
+	 * Creates an extractor which extracts properties from a MS Word format discharge notification
+	 * <p>
+	 * The extracted properties are dynamic - the names are determined by the contents of the document. The document
+	 * is processed in sections, where each section uses a given pattern to define name/value pairs.
+	 */
+	public static PropertiesExtractor<Document> createWordDischargeNotificationExtractor(final XPath xpath) throws XPathExpressionException {		
+		final SplitterPropertiesExtractor splitter = new SplitterPropertiesExtractor();
+		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/head/meta"),  new MetadataExtractor());
+
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/p[position()=1]"),
+				new SinglePropertyExtractor("hospitalAddress"));
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=2]/*/tr/td/p"),
+				new PropertyTableExtractor());
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=3]/*/tr/td/p"),
+				new PropertyTableExtractor());
+		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[count(preceding::b[text()='Consultant follow up:']) = 1 and count(following::b[text()='Discharge Medication']) = 1]/*/tr"),
+				new ObjectTableExtractor(xpath, "allergens"));
+		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[count(preceding::b[text()='Discharge Medication']) = 1 and count(following::b[text()='Prescriber:']) = 1]/*/tr"),
+				new ObjectTableExtractor(xpath, "dischargeMedication"));
+		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::b[text()='Prescriber:']]/*/tr/td/p"),
+				new PropertyTableExtractor());
+		
+		return new NodeStreamToDocumentPropertiesExtractor(splitter);
 	}
 }
