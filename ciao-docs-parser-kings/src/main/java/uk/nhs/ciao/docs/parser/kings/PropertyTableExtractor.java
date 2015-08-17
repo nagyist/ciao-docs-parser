@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.util.Whitespace.collapseWhitespace;
+import static uk.nhs.ciao.util.Whitespace.collapseAndTrimWhitespace;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,7 @@ public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
 		while (nodes.hasNext()) {
 			final Node node = nodes.take();
 			if (node instanceof Element) {
-				final String text = collapseWhitespace(node.getTextContent());
+				final String text = collapseWhitespaceAndTrim(node.getTextContent());
 				if (text.length() > 1 && text.endsWith(":")) {
 					if (name != null && value != null) {
 						properties.put(name, value);

@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.util.Whitespace.collapseWhitespace;
+import static uk.nhs.ciao.util.Whitespace.collapseAndTrimWhitespace;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ public class SinglePropertyExtractor implements PropertiesExtractor<NodeStream> 
 		}
 		
 		final Map<String, Object> properties = Maps.newHashMap();
-		final String text = collapseWhitespace(nodes.take().getTextContent());
+		final String text = collapseWhitespaceAndTrim(nodes.take().getTextContent());
 		properties.put(propertyName, text);
 		return properties;
 	}
