@@ -17,6 +17,7 @@ import uk.nhs.ciao.docs.parser.DatePropertyConverter;
 import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesTransformer;
+import uk.nhs.ciao.docs.parser.PropertiesValidator;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
@@ -167,12 +168,16 @@ public class KingsPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::b[text()='Prescriber:']]/*/tr/td/p"),
 				new PropertyTableExtractor());
 		
+		// TODO: example property validator - perhaps these can be configured via a resource or spring etc?
+		final PropertiesValidator validator = new PropertiesValidator();
+		validator.requireNonEmptyProperty("NHS Number");
 		
 		// TODO: example property transformation - perhaps these can be configured via a resource or spring etc?
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.renameProperty("NHS Number", "patientNHSNo");
 		
 		final List<PropertiesExtractor<Map<String, Object>>> additionalExtractors = Lists.newArrayList();
+		additionalExtractors.add(validator);
 		additionalExtractors.add(transformer);
 		
 		return new NodeStreamToDocumentPropertiesExtractor(chain(splitter, additionalExtractors));
