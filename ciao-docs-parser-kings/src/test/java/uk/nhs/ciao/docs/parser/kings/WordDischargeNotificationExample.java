@@ -2,17 +2,27 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
 import org.w3c.dom.Document;
 
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.SAXContentToDOMHandler;
+import uk.nhs.ciao.docs.parser.TikaParserFactory;
 
 public class WordDischargeNotificationExample {
 	public static void main(final String[] args) throws Exception {
-		final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		final Document document = builder.parse(WordDischargeNotificationExample.class.getResourceAsStream("example.xml"));
+		final Parser parser = TikaParserFactory.createParser();
+
+		final SAXContentToDOMHandler handler = new SAXContentToDOMHandler(
+				DocumentBuilderFactory.newInstance().newDocumentBuilder(), true);
+		parser.parse(WordDischargeNotificationExample.class.getResourceAsStream("input/Example4.docx"),
+				handler, new Metadata(), new ParseContext());
+		
+		final Document document = handler.getDocument();
 		
 //		Thread.sleep(20000);
 		
