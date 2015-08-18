@@ -58,7 +58,7 @@ public class SplitterPropertiesExtractor implements PropertiesExtractor<NodeStre
 		public Map<String, Object> selectAndExtract(final NodeStream nodes) throws UnsupportedDocumentTypeException {
 			final Mark initialMark = nodes.mark();
 			final NodeStream selectedNodes = selector.selectNodes(nodes);
-			if (selectedNodes == null || selectedNodes.isEmpty()) {
+			if (selectedNodes == null) {
 				initialMark.resetStream();
 				return null;
 			}

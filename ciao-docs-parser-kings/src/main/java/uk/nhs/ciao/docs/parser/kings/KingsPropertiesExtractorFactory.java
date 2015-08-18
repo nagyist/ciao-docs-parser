@@ -2,25 +2,21 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
 
-import java.util.List;
-import java.util.Map;
-
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 
-import com.google.common.collect.Lists;
-
 import uk.nhs.ciao.docs.parser.DatePropertyConverter;
+import uk.nhs.ciao.docs.parser.NodeStream;
 import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.PropertiesExtractorChain;
 import uk.nhs.ciao.docs.parser.PropertiesTransformer;
 import uk.nhs.ciao.docs.parser.PropertiesValidator;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
-import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 
 /**
@@ -150,6 +146,8 @@ public class KingsPropertiesExtractorFactory {
 	public static PropertiesExtractor<Document> createWordDischargeNotificationExtractor(final XPath xpath) throws XPathExpressionException {		
 		final SplitterPropertiesExtractor splitter = new SplitterPropertiesExtractor();
 		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=1]//p/b"), new WordDischargeNotificationDetector());
+		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/head/meta"),  new MetadataExtractor());
 
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/p[position()=1]"),
@@ -178,24 +176,10 @@ public class KingsPropertiesExtractorFactory {
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.renameProperty("NHS Number", "patientNHSNo");
 		
-		final List<PropertiesExtractor<Map<String, Object>>> additionalExtractors = Lists.newArrayList();
-		additionalExtractors.add(validator);
-		additionalExtractors.add(transformer);
+		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
+		chain.addExtractor(validator);
+		chain.addExtractor(transformer);
 		
-		return new NodeStreamToDocumentPropertiesExtractor(chain(splitter, additionalExtractors));
-	}
-	
-	private static <T> PropertiesExtractor<T> chain(final PropertiesExtractor<T> firstExtractor, final List<PropertiesExtractor<Map<String, Object>>> additionalExtractors) {
-		return new PropertiesExtractor<T>() {
-			@Override
-			public Map<String, Object> extractProperties(final T document)
-					throws UnsupportedDocumentTypeException {
-				Map<String, Object> properties = firstExtractor.extractProperties(document);
-				for (final PropertiesExtractor<Map<String, Object>> extractor: additionalExtractors) {
-					properties = extractor.extractProperties(properties);
-				}
-				return properties;
-			}
-		};
+		return new NodeStreamToDocumentPropertiesExtractor(chain);
 	}
 }

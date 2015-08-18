@@ -6,6 +6,7 @@
 	<bean id="tikaParser" class="uk.nhs.ciao.docs.parser.TikaParserFactory" factory-method="createParser" />
     <bean id="dischargeNotificationExtractor" class="uk.nhs.ciao.docs.parser.kings.KingsPropertiesExtractorFactory" factory-method="createDischargeNotificationExtractor" />
  	<bean id="edDischargeExtractor" class="uk.nhs.ciao.docs.parser.kings.KingsPropertiesExtractorFactory" factory-method="createEDDischargeExtractor" />
+ 	<bean id="wordDischargeNotificationExtractor" class="uk.nhs.ciao.docs.parser.kings.KingsPropertiesExtractorFactory" factory-method="createWordDischargeNotificationExtractor" />
     
     <bean id="dischargeNotificationProcessor" class="uk.nhs.ciao.docs.parser.DocumentParserProcessor">
     	<constructor-arg>
@@ -25,6 +26,15 @@
     	</constructor-arg>
     </bean>
     
+    <bean id="wordDischargeNotificationProcessor" class="uk.nhs.ciao.docs.parser.DocumentParserProcessor">
+    	<constructor-arg>
+    		<bean class="uk.nhs.ciao.docs.parser.TikaDocumentParser">
+    			<constructor-arg ref="tikaParser" />
+    			<constructor-arg ref="wordDischargeNotificationExtractor" />
+    		</bean>
+    	</constructor-arg>
+    </bean>
+    
     <bean id="autoDetectProcessor" class="uk.nhs.ciao.docs.parser.DocumentParserProcessor">
     	<constructor-arg>
     		<bean class="uk.nhs.ciao.docs.parser.TikaDocumentParser">
@@ -35,6 +45,7 @@
 		    				<array value-type="uk.nhs.ciao.docs.parser.PropertiesExtractor">
 		    					<ref bean="dischargeNotificationExtractor"/>
 		    					<ref bean="edDischargeExtractor"/>
+		    					<ref bean="wordDischargeNotificationExtractor"/>
 		    				</array>
 	    				</constructor-arg>
 	    			</bean>
