@@ -1,13 +1,13 @@
 package uk.nhs.ciao.docs.parser;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Locale;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -20,15 +20,15 @@ public class DatePropertyConverter implements PropertyConverter {
 	/**
 	 * Standard Date format used by HL7
 	 */
-	private static final DateFormatThreadLocal HL7_FORMAT = new DateFormatThreadLocal("yyyyMMdd");
+	private static final DateTimeFormatter HL7_FORMAT = DateTimeFormat.forPattern("yyyyMMdd").withLocale(Locale.getDefault());
 	
-	private final DateFormatThreadLocal parseFormat;
+	private final DateTimeFormatter parseFormat;
 	
 	/**
 	 * Constructs a new date property converter using the specified pattern as the input format
 	 */
 	public DatePropertyConverter(final String pattern) {
-		parseFormat = new DateFormatThreadLocal(pattern);
+		parseFormat = DateTimeFormat.forPattern(pattern);
 	}
 	
 	@Override
@@ -38,29 +38,12 @@ public class DatePropertyConverter implements PropertyConverter {
 		}
 		
 		try {
-			final Date date = parseFormat.get().parse(value);
-			return HL7_FORMAT.get().format(date);
+			final DateTime date = parseFormat.parseDateTime(value);
+			return HL7_FORMAT.print(date);
 		} catch (Exception e) {
 			LOGGER.debug("Unable to parse property name: {} value: {} - continuing with original value",
 					name, value, e);
 			return value;
-		}
-	}
-	
-	/**
-	 * ThreadLocal to contain simple date format instances (SimpleDateFormat is NOT thread-safe so
-	 * synchronisation or thread-confinement is required)
-	 */
-	private static class DateFormatThreadLocal extends ThreadLocal<DateFormat> {
-		private final String pattern;
-		
-		public DateFormatThreadLocal(final String pattern) {
-			this.pattern = Preconditions.checkNotNull(pattern);
-		}
-		
-		@Override
-		protected DateFormat initialValue() {
-			return new SimpleDateFormat(pattern);
 		}
 	}
 }
