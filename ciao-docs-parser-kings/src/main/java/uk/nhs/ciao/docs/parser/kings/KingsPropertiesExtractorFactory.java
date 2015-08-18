@@ -18,6 +18,7 @@ import uk.nhs.ciao.docs.parser.PropertiesValidator;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
+import uk.nhs.ciao.docs.parser.kings.PropertyTableExtractor.ValueMode;
 
 /**
  * Factory to create {@link PropertiesExtractor}s capable of
@@ -151,7 +152,7 @@ public class KingsPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/p[position()=1]"),
 				new SinglePropertyExtractor("hospitalAddress"));
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=2]/*/tr/td/p"),
-				new PropertyTableExtractor());
+				new PropertyTableExtractor(ValueMode.MULTIPLE_VALUES));
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=3]/*/tr/td/p"),
 				new PropertyTableExtractor());
 		

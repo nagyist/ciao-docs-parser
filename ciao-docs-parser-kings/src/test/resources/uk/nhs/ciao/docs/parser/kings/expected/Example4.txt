@@ -11,16 +11,20 @@
   "Date of Admission": "23/01/2014 13:28",
   "Method of admission": "Emergency - GP Referral",
   "Source of admission": "Usual place of residence",
-  "GP": "Jenner Health Centre",
+  "GP": [
+    "Dr. A WARSOP",
+    "The Jenner Practice",
+    "Jenner Health Centre",
+    "201 Stanstead Road, Forest Hill",
+    "London",
+    "SE23 1HU"
+  ],
   "Date of Discharge": ":",
   "Usual residence": "36 Muirkirk Road, Catford LONDON, SE6 1BU",
-  "Recommended further mgmt/action by GP": [
-    "We have initiated Quetiapine low dose and stopped Risperidone due to increased confusion. Can you please review",
-    "her regarding the response and side effects to Quetiapine? Thank you.."
-  ],
+  "Recommended further mgmt/action by GP": "We have initiated Quetiapine low dose and stopped Risperidone due to increased confusion. Can you please review her regarding the response and side effects to Quetiapine? Thank you..",
   "Reason For Admission": "Confusion and reduced mobility",
-  "History of presenting complaint": "initially, then, she became more confused.",
-  "Clinical Narative": "evidence of malignancy. We treated her with antibiotics for urinary tract infection. She was stable during the ward",
+  "History of presenting complaint": "This is the 59 year old lady who has presented to us with confusion and reduced mobility. According to the carer, she became more confused in the last one week. GP has treated her for urinary tract infection. She has improved initially, then, she became more confused. Examination showed low grade fever (37.7), clear chest and soft and non tender abdomen. Bloods showed high WBC (24.5) and raised CRP with normal renal function. Social: lives with family, 24 hour private carer",
+  "Clinical Narative": "We treated her as sepsis. CXR showed ? lesion in right upper lobe and also showed patchy shadows. We arranged for CT CAP on view of loss of weight and lesions in right upper lobe. CT CAP showed achlasia hernia and no evidence of malignancy. We treated her with antibiotics for urinary tract infection. She was stable during the ward stay but she was not calm and screaming most of the time, but not aggressive and harmful to anyone on ward. However, she became a lot calmer with Quetiapine. She was discharged with Quetiapine low dose.",
   "Main Diagnosis": "Urinary Tract Infection",
   "Past medical history": "Alzheimer's disease, GORD and Total Hip replacement",
   "CoMorbidity": "Alzheimers incl. Dementia in Alzheimers",

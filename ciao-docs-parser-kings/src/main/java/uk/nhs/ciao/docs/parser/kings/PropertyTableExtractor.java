@@ -16,6 +16,30 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
+	public enum ValueMode {
+		/**
+		 * Multiple values are stored in a list
+		 */
+		MULTIPLE_VALUES,
+		
+		
+		/**
+		 * Multiple values are appended as text as a single property value
+		 */
+		SINGLE_VALUE;
+	}
+	
+	private final ValueMode valueMode;
+	
+	public PropertyTableExtractor() {
+		this.valueMode = ValueMode.SINGLE_VALUE;
+	}
+	
+	public PropertyTableExtractor(final ValueMode valueMode) {
+		this.valueMode = valueMode;
+	}
+	
+	
 	@Override
 	public Map<String, Object> extractProperties(final NodeStream nodes)
 			throws UnsupportedDocumentTypeException {
@@ -40,11 +64,16 @@ public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
 					value = null;
 					values = null;
 				} else if (!text.isEmpty()) {
-					if (value == null) {
+					if (value == null && values == null) {
 						value = text;
 					} else if (values == null) {
-						values = Lists.newArrayList(value, text);
-						value = null;
+						if (valueMode == ValueMode.MULTIPLE_VALUES || properties.containsKey(name)) {
+							values = Lists.newArrayList(value, text);
+							value = null;
+						} else {
+							// append to existing value
+							value = collapseWhitespaceAndTrim(value + " " + text);
+						}
 					} else {
 						values.add(text);
 					}

@@ -9,6 +9,8 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.w3c.dom.Document;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SAXContentToDOMHandler;
 import uk.nhs.ciao.docs.parser.TikaParserFactory;
@@ -33,7 +35,7 @@ public class WordDischargeNotificationExample {
 		final WordDischargeNotificationExample example = new WordDischargeNotificationExample(document, extractor);
 		for (int i = 0; i < iterations; i++) {
 //			example.run();
-			System.out.println(example.run());
+			System.out.println(new ObjectMapper().writeValueAsString(example.run()));
 		}
 		System.out.println("Time per extraction: " + ((long)((double)(System.nanoTime() - start)  / (1000000d * iterations))) + " ms");
 	}
