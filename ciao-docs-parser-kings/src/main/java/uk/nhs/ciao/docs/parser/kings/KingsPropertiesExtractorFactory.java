@@ -170,7 +170,9 @@ public class KingsPropertiesExtractorFactory {
 		
 		// TODO: example property validator - perhaps these can be configured via a resource or spring etc?
 		final PropertiesValidator validator = new PropertiesValidator();
-		validator.requireNonEmptyProperty("NHS Number");
+		validator.requireNHSNumberProperty("NHS Number");
+		validator.requireDateProperty("D.O.B", "dd/MM/yyyy", true);
+		validator.requireNonEmptyProperty("Self Discharge");
 		
 		// TODO: example property transformation - perhaps these can be configured via a resource or spring etc?
 		final PropertiesTransformer transformer = new PropertiesTransformer();

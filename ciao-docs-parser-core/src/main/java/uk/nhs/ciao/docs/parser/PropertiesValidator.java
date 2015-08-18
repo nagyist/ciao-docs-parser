@@ -6,6 +6,9 @@ import java.util.Map;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.DateTimeParser;
+import org.joda.time.format.DateTimeParserBucket;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -84,8 +87,21 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 * @see DatePropertyValidation
 	 */
 	public void requireDateProperty(final String propertyName, final String pattern) {
+		final boolean lenient = false;
+		requireDateProperty(propertyName, pattern, lenient);
+	}
+	
+	/**
+	 * Adds a validation to check that the extracted properties contains
+	 * a named property and that the associated value matches the specified date pattern
+	 * 
+	 * @param propertyName The name of the required property
+	 * @param lenient If true, unmatched trailing text is ignored
+	 * @see DatePropertyValidation
+	 */
+	public void requireDateProperty(final String propertyName, final String pattern, final boolean lenient) {
 		final boolean required = true;
-		addValidation(new DatePropertyValidation(propertyName, pattern, required));
+		addValidation(new DatePropertyValidation(propertyName, pattern, required, lenient));
 	}
 	
 	/**
@@ -96,8 +112,32 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 * @see DatePropertyValidation
 	 */
 	public void optionalDateProperty(final String propertyName, final String pattern) {
+		final boolean lenient = false;
+		optionalDateProperty(propertyName, pattern, lenient);
+	}
+	
+	/**
+	 * Adds a validation to check that if the extracted properties contains
+	 * a named property then the associated value matches the specified date pattern
+	 * 
+	 * @param propertyName The name of the optional property
+	 * @param lenient If true, unmatched trailing text is ignored
+	 * @see DatePropertyValidation
+	 */
+	public void optionalDateProperty(final String propertyName, final String pattern, final boolean lenient) {
 		final boolean required = false;
-		addValidation(new DatePropertyValidation(propertyName, pattern, required));
+		addValidation(new DatePropertyValidation(propertyName, pattern, required, lenient));
+	}
+	
+	/**
+	 * Adds a validation to check that the extracted properties contains
+	 * a named property and that the associated value is a valid NHS number
+	 * 
+	 * @param propertyName The name of the required property
+	 * @see NHSNumberPropertyValidation
+	 */
+	public void requireNHSNumberProperty(final String propertyName) {
+		addValidation(new NHSNumberPropertyValidation(propertyName));
 	}
 	
 	/**
@@ -195,13 +235,15 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 		private final DateTimeFormatter formatter;
 		private final boolean required;
 		
-		public DatePropertyValidation(final String propertyName, final String pattern, final boolean required) {
-			this(propertyName, DateTimeFormat.forPattern(pattern), required);
+		public DatePropertyValidation(final String propertyName, final String pattern, final boolean required, final boolean lenient) {
+			this(propertyName, DateTimeFormat.forPattern(pattern), required, lenient);
 		}
 		
-		public DatePropertyValidation(final String propertyName, final DateTimeFormatter formatter, final boolean required) {
-			this.propertyName = Preconditions.checkNotNull(propertyName);
-			this.formatter = Preconditions.checkNotNull(formatter);
+		public DatePropertyValidation(final String propertyName, final DateTimeFormatter formatter,
+				final boolean required, final boolean lenient) {
+			Preconditions.checkNotNull(formatter);
+			this.propertyName = Preconditions.checkNotNull(propertyName);			
+			this.formatter = lenient ? createLenientDateTimeFormatter(formatter) : formatter;
 			this.required = required;
 		}
 		
@@ -220,6 +262,58 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 			} catch (IllegalArgumentException e) {
 				result.addPropertyValidationError(propertyName, "is not a valid date: " + value);
 			}
+		}
+	}
+	
+	
+	/**
+	 * Adapts the specified date formatter accept and parse values containing trailing unmatched text.
+	 */
+	private static DateTimeFormatter createLenientDateTimeFormatter(final DateTimeFormatter formatter) {
+		return new DateTimeFormatterBuilder()
+			.append(formatter)
+			.appendOptional(new RemainingTextGobbler())
+			.toFormatter();
+	}
+	
+	/**
+	 * Special-case {@link DateTimeParser} which ignores/gobbles any unmatched trailing text when
+	 * parsing a date time
+	 */
+	private static class RemainingTextGobbler implements DateTimeParser {
+		@Override
+		public int estimateParsedLength() {
+			return 100;
+		}
+		
+		@Override
+		public int parseInto(final DateTimeParserBucket bucket, final String text, final int position) {
+			// Consume all trailing text
+			return text.length();
+		}
+	}
+	
+	public static class NHSNumberPropertyValidation implements PropertiesValidation {
+		private final String propertyName;
+		
+		public NHSNumberPropertyValidation(final String propertyName) {
+			this.propertyName = Preconditions.checkNotNull(propertyName);
+		}
+		
+		@Override
+		public void validate(final Map<String, Object> properties, final ValidationResult result) {
+			final Object value = properties.get(propertyName);
+			
+			if (value == null) {
+				result.addPropertyValidationError(propertyName, "must be specified");
+			} else if (!isNHSNumber(value.toString())) {
+				result.addPropertyValidationError(propertyName, "is not a valid NHS number: " + value);
+			}
+		}
+		
+		private boolean isNHSNumber(final String value) {
+			// TODO: add tests when more about the format is known
+			return true;
 		}
 	}
 }
