@@ -57,7 +57,11 @@ public abstract class KingsDischargeSummaryParserTestBase {
 		
 		// Check against expectations
 		for (final String name: Arrays.asList("Example2", "Example3")) {
-			checkJsonOutput(name + ".txt");
+			checkJsonOutput(name + ".txt", "application/pdf");
+		}
+		
+		for (final String name: Arrays.asList("Example4")) {
+			checkJsonOutput(name + ".txt", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 		}
 		
 		// Example.pdf is not a supported type - so there should be no Example.txt in the output
@@ -65,7 +69,7 @@ public abstract class KingsDischargeSummaryParserTestBase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void checkJsonOutput(final String name) throws Exception {
+	private void checkJsonOutput(final String name, final String mediaType) throws Exception {
 		InputStream inputStream = null;
 		try {
 			inputStream = getClass().getResourceAsStream("expected/" + name);
@@ -73,10 +77,10 @@ public abstract class KingsDischargeSummaryParserTestBase {
 			
 			final File actualFile = new File(outputFolder, name);
 			final Map<String, Object> actual = objectMapper.readValue(actualFile, MAP_TYPE);
-			
+
 			assertTrue("Parsed content: " + name, actual.entrySet().containsAll(expected.entrySet()));
 			assertTrue("Metadata expected: " + name, actual.containsKey(PropertyNames.METADATA));
-			assertEquals("Media type: " + name, "application/pdf",
+			assertEquals("Media type: " + name, mediaType,
 					((Map<String, Object>)actual.get(PropertyNames.METADATA)).get(PropertyNames.CONTENT_TYPE));
 		} finally {
 			Closeables.closeQuietly(inputStream);

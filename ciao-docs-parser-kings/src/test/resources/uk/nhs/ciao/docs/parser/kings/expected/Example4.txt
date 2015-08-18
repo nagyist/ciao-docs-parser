@@ -1,0 +1,54 @@
+{
+  "hospitalAddress": "Princess Royal University Hospital,Farnborough Common, Orpington,Kent BR6 8ND",
+  "Ward": "Medical Ward 1",
+  "Consultant": "Jack Barker",
+  "NHS Number": "None",
+  "Specialty": "Medicine",
+  "Patient Name": "Mary Edn-Training",
+  "Discharged by": "Sarah Phillips",
+  "D.O.B": "05/09/1956 ( 58 )",
+  "Self Discharge": "No",
+  "Date of Admission": "23/01/2014 13:28",
+  "Method of admission": "Emergency - GP Referral",
+  "Source of admission": "Usual place of residence",
+  "GP": "Jenner Health Centre",
+  "Date of Discharge": ":",
+  "Usual residence": "36 Muirkirk Road, Catford LONDON, SE6 1BU",
+  "Recommended further mgmt/action by GP": [
+    "We have initiated Quetiapine low dose and stopped Risperidone due to increased confusion. Can you please review",
+    "her regarding the response and side effects to Quetiapine? Thank you.."
+  ],
+  "Reason For Admission": "Confusion and reduced mobility",
+  "History of presenting complaint": "initially, then, she became more confused.",
+  "Clinical Narative": "evidence of malignancy. We treated her with antibiotics for urinary tract infection. She was stable during the ward",
+  "Main Diagnosis": "Urinary Tract Infection",
+  "Past medical history": "Alzheimer's disease, GORD and Total Hip replacement",
+  "CoMorbidity": "Alzheimers incl. Dementia in Alzheimers",
+  "Laboratory": "CT Chest/Abdo/Pelvis/ +C : Chest: The oesophagus is markedly dilated with evidence of food residue. There are bilateral multifocal airspace opacifications noted within the upper lobes, right middle lobe on a background of bilateral subpleural reticulation. Small right-sided pleural effusion. No evidence of mediastinal or hilar lymph node enlargement. Abdomen: Unremarkable appearances of the liver, biliary tree, pancreas, spleen and the kidneys. No focal abnormality is noted. No evidence of mesenteric or retroperitoneal lymph node enlargement. No evidence of free fluid. Normal appearances of the unprepared small and large bowel. Unremarkable appearances noted within the pelvis and the retroperitoneum. No focal skeletal abnormalities are noted. Conclusion: Abnormal enlargement of the oesophagus with delayed emptying/reflux. Although this may be due to achalasia distal gastro-oesophageal junction lesion cannot be completely excluded. OGD is recommended if this is clinically feasible. The lung parenchymal changes are most likely to be in keeping with recurrent aspiration. No radiological evidence to suggest intra-abdominal or pelvic malignancy.",
+  "Other": "Equipment provided on Discharge",
+  "allergens": [
+    {
+      "Allergen": "Peniciilin",
+      "Reaction": "",
+      "Comments": "Previously listed as an adverse reaction but co­amoxiclav given with no adverse reaction."
+    }
+  ],
+  "dischargeMedication": [
+    {
+      "Medication": "Quetiapine Tablet, 12.5mg, Oral, TWICE a day, . . New for agitation in dementia - GP to continue to monitor for risk/benefit.",
+      "Status": "New to continue,",
+      "Supply": "DFD supply on ward,",
+      "Pharmacy": ""
+    },
+    {
+      "Medication": "Risperidone Tablet, , , , . . Initiated in community but daughter reports increased confusion",
+      "Status": "Regular stopped on admission, Stopped",
+      "Supply": ",",
+      "Pharmacy": ""
+    }
+  ],
+  "Prescriber": "Sarah Phillips",
+  "Contact Details": "546",
+  "Screened by": "John Adams on 2015-06-09 14:42:00.000.",
+  "patientNHSNo": "None"
+}

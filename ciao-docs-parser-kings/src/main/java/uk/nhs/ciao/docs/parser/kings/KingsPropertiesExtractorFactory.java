@@ -147,8 +147,6 @@ public class KingsPropertiesExtractorFactory {
 		final SplitterPropertiesExtractor splitter = new SplitterPropertiesExtractor();
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=1]//p/b"), new WordDischargeNotificationDetector());
-		
-		splitter.addSelection(new XPathNodeSelector(xpath, "/html/head/meta"),  new MetadataExtractor());
 
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/p[position()=1]"),
 				new SinglePropertyExtractor("hospitalAddress"));

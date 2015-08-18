@@ -43,9 +43,9 @@
     				<bean class="uk.nhs.ciao.docs.parser.MultiPropertiesExtractor">
     					<constructor-arg>
 		    				<array value-type="uk.nhs.ciao.docs.parser.PropertiesExtractor">
+		    					<ref bean="wordDischargeNotificationExtractor"/>
 		    					<ref bean="dischargeNotificationExtractor"/>
 		    					<ref bean="edDischargeExtractor"/>
-		    					<ref bean="wordDischargeNotificationExtractor"/>
 		    				</array>
 	    				</constructor-arg>
 	    			</bean>
