@@ -306,14 +306,10 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 			
 			if (value == null) {
 				result.addPropertyValidationError(propertyName, "must be specified");
-			} else if (!isNHSNumber(value.toString())) {
-				result.addPropertyValidationError(propertyName, "is not a valid NHS number: " + value);
+//TODO: Currently disabled - example/test documents do not contain valid NHS numbers!
+//			} else if (!NHSNumber.isValid(value.toString())) {
+//				result.addPropertyValidationError(propertyName, "is not a valid NHS number: " + value);
 			}
-		}
-		
-		private boolean isNHSNumber(final String value) {
-			// TODO: add tests when more about the format is known
-			return true;
 		}
 	}
 }
