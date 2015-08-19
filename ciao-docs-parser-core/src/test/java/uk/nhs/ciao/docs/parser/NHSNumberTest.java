@@ -9,6 +9,17 @@ import org.junit.Test;
  */
 public class NHSNumberTest {
 	@Test
+	public void testDisplayValueAndValueCanBeDifferent() {
+		final String displayValue = "123 456 789 0 ";
+		final String value = "1234567890";
+		final NHSNumber number = NHSNumber.valueOf(displayValue);
+		
+		assertEquals(displayValue, number.getDisplayValue());
+		assertEquals(displayValue, number.toString());
+		assertEquals(value, number.getValue());
+	}
+	
+	@Test
 	public void testNormalise() {
 		final NHSNumber number = NHSNumber.valueOf("123 456 789 0 ");
 		final NHSNumber expected = NHSNumber.valueOf("1234567890");
@@ -28,8 +39,17 @@ public class NHSNumberTest {
 	
 	@Test
 	public void testNHSNumberFailsMod11Algorithm() {
-		final String number = "123 456 789 0 ";
-		assertFalse(NHSNumber.valueOf(number).isValid());
+		assertInvalid("123 456 789 0 ");
+		assertInvalid("12345678901");
+		assertInvalid(null);
+	}
+	
+	private void assertInvalid(final String number) {
+		final NHSNumber nhsNumber = NHSNumber.valueOf(number);
+		if (nhsNumber != null) {
+			assertFalse(nhsNumber.isValid());
+		}
+		
 		assertFalse(NHSNumber.isValid(number));
 	}
 	
