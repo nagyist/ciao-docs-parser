@@ -12,6 +12,7 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spi.IdempotentRepository;
+import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,8 +162,8 @@ public class DocumentParserRoutes extends CIPRoutes {
 					"idempotentRepository=#" + idempotentRepositoryId + "&" +
 					"inProgressRepository=#" + inProgressRepositoryId + "&" +
 					"readLock=idempotent&" +
-					"move=${header." + IN_PROGRESS_FOLDER + "}/${file:name}&" +
-					"moveFailed=${header." + ERROR_FOLDER + "}/${file:name}")
+					"move=${header." + IN_PROGRESS_FOLDER + "}/input/${file:name}&" +
+					"moveFailed=${header." + ERROR_FOLDER + "}/input/${file:name}")
 			.id("parse-document-" + name)
 
 			// Generate the standard parsed document headers
@@ -183,6 +184,22 @@ public class DocumentParserRoutes extends CIPRoutes {
 				.processRef(processorId)
 				.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
 				.marshal().json(JsonLibrary.Jackson)
+				
+				// Store details of configured file paths in the in-progress control directory
+				.multicast(AggregationStrategies.useOriginal())
+					.pipeline()
+						.setBody().header(COMPLETED_FOLDER)
+						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/completed-folder")
+						.to("file://?fileExist=Override")
+					.end()
+					
+					.pipeline()
+						.setBody().header(ERROR_FOLDER)
+						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/error-folder")
+						.to("file://?fileExist=Override")
+					.end()
+				.end()
+				
 				.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}.json"))
 				.to("jms:queue:" + outputQueue)
 			.endDoTry()
