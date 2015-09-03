@@ -8,11 +8,14 @@ import java.util.UUID;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Expression;
+import org.apache.camel.Header;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spi.IdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +71,7 @@ import uk.nhs.ciao.exceptions.CIAOConfigurationException;
  */
 public class DocumentParserRoutes extends CIPRoutes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserRoutes.class);
+	private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZoneUTC();
 	
 	/**
 	 * The root property 
@@ -188,6 +192,12 @@ public class DocumentParserRoutes extends CIPRoutes {
 				// Store details of configured file paths in the in-progress control directory
 				.multicast(AggregationStrategies.useOriginal())
 					.pipeline()
+						.setBody(method(DocumentParserRoutes.class, "getISOTimestamp"))
+						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/start-time")
+						.to("file://?fileExist=Override")
+					.end()
+					
+					.pipeline()
 						.setBody().header(COMPLETED_FOLDER)
 						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/completed-folder")
 						.to("file://?fileExist=Override")
@@ -215,6 +225,13 @@ public class DocumentParserRoutes extends CIPRoutes {
 		private Expression concat(final Expression... expressions) {
 			return ExpressionBuilder.concatExpression(Arrays.asList(expressions));
 		}
+	}
+	
+	/**
+	 * Returns a ISO-8601 formatted time-stamp corresponding to the specified value
+	 */
+	public static String getISOTimestamp(@Header(TIMESTAMP) final long timestamp) {
+		return TIMESTAMP_FORMATTER.print(timestamp);
 	}
 	
 	/**
