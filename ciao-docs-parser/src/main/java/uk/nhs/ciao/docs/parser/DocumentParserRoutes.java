@@ -71,7 +71,7 @@ import uk.nhs.ciao.exceptions.CIAOConfigurationException;
  */
 public class DocumentParserRoutes extends CIPRoutes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserRoutes.class);
-	private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZoneUTC();
+	private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormat.forPattern("yyyyMMdd-HHmmssSSS").withZoneUTC();
 	
 	/**
 	 * The root property 
@@ -192,12 +192,6 @@ public class DocumentParserRoutes extends CIPRoutes {
 				// Store details of configured file paths in the in-progress control directory
 				.multicast(AggregationStrategies.useOriginal())
 					.pipeline()
-						.setBody(method(DocumentParserRoutes.class, "getISOTimestamp"))
-						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/start-time")
-						.to("file://?fileExist=Override")
-					.end()
-					
-					.pipeline()
 						.setBody().header(COMPLETED_FOLDER)
 						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/completed-folder")
 						.to("file://?fileExist=Override")
@@ -206,6 +200,11 @@ public class DocumentParserRoutes extends CIPRoutes {
 					.pipeline()
 						.setBody().header(ERROR_FOLDER)
 						.setHeader(Exchange.FILE_NAME).simple("${header." + IN_PROGRESS_FOLDER + "}/control/error-folder")
+						.to("file://?fileExist=Override")
+					.end()
+					
+					.pipeline()
+						.setHeader(Exchange.FILE_NAME, method(DocumentParserRoutes.class, "getDocumentParsedEventFileName"))
 						.to("file://?fileExist=Override")
 					.end()
 				.end()
@@ -230,8 +229,8 @@ public class DocumentParserRoutes extends CIPRoutes {
 	/**
 	 * Returns a ISO-8601 formatted time-stamp corresponding to the specified value
 	 */
-	public static String getISOTimestamp(@Header(TIMESTAMP) final long timestamp) {
-		return TIMESTAMP_FORMATTER.print(timestamp);
+	public static String getDocumentParsedEventFileName(@Header(IN_PROGRESS_FOLDER) final String inProgressFolder, @Header(TIMESTAMP) final long timestamp) {
+		return inProgressFolder + "/events/" + TIMESTAMP_FORMATTER.print(timestamp) + "-document-parsed";
 	}
 	
 	/**
