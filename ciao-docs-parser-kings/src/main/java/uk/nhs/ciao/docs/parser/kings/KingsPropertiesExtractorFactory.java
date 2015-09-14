@@ -13,12 +13,12 @@ import uk.nhs.ciao.docs.parser.NodeStream;
 import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertiesExtractorChain;
-import uk.nhs.ciao.docs.parser.PropertiesTransformer;
 import uk.nhs.ciao.docs.parser.PropertiesValidator;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 import uk.nhs.ciao.docs.parser.kings.PropertyTableExtractor.ValueMode;
+import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
 
 /**
  * Factory to create {@link PropertiesExtractor}s capable of
@@ -173,7 +173,17 @@ public class KingsPropertiesExtractorFactory {
 		
 		// TODO: example property transformation - perhaps these can be configured via a resource or spring etc?
 		final PropertiesTransformer transformer = new PropertiesTransformer();
+		transformer.renameProperty("Ward", "documentAuthorWorkgroupName");
+		transformer.renameProperty("Hospital Number", "patientLocalID");
+		transformer.renameProperty("Consultant", "documentAuthorName");
 		transformer.renameProperty("NHS Number", "patientNHSNo");
+		transformer.renameProperty("Patient Name", "patientName.fullName");
+		transformer.renameProperty("D.O.B", "patientBirthDate");
+		transformer.renameProperty("Usual residence", "patientAddress.fullAddress");
+		transformer.renameProperty("Clinical Narative", "clinicalSummary");
+		transformer.splitProperty("Screened by", "(.+) on (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}).*",
+				"medicationsPharmacistScreeningAuthorName", "medicationsPharmacistScreeningDate");
+		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
 		
 		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
 		chain.addExtractor(validator);
