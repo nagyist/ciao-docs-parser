@@ -21,7 +21,7 @@ public class SplitPropertyTransformation implements PropertiesTransformation {
 	 * Creates a new property split transformation which retains the original property
 	 * in the source map
 	 */
-	public SplitPropertyTransformation(final String from, final String pattern, final String... to) {
+	public SplitPropertyTransformation(final String from, final String pattern, final PropertyMutator... to) {
 		this(from, Pattern.compile(pattern), to);
 	}
 	
@@ -29,21 +29,18 @@ public class SplitPropertyTransformation implements PropertiesTransformation {
 	 * Creates a new property split transformation which retains the original property
 	 * in the source map
 	 */
-	public SplitPropertyTransformation(final String from, final Pattern pattern, final String... to) {
+	public SplitPropertyTransformation(final String from, final Pattern pattern, final PropertyMutator... to) {
 		this(from, true, pattern, to);
 	}
 	
 	/**
 	 * Creates a new property split transformation
 	 */
-	public SplitPropertyTransformation(final String from, final boolean retainOriginal, final Pattern pattern, final String... to) {
+	public SplitPropertyTransformation(final String from, final boolean retainOriginal, final Pattern pattern, final PropertyMutator... to) {
 		this.from = Preconditions.checkNotNull(from);
 		this.retainOriginal = retainOriginal;
 		this.pattern = Preconditions.checkNotNull(pattern);
-		this.to = Lists.newArrayList();
-		for (final String propertyName: to) {
-			this.to.add(new PropertyMutator(propertyName));
-		}
+		this.to = Lists.newArrayList(to);
 	}
 	
 	@Override

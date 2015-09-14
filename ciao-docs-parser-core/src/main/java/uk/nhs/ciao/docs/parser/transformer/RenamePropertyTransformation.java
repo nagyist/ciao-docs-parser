@@ -17,17 +17,17 @@ public class RenamePropertyTransformation implements PropertiesTransformation {
 	 * Creates a new property rename transformation which retains the original property
 	 * in the source map
 	 */
-	public RenamePropertyTransformation(final String from, final String to) {
+	public RenamePropertyTransformation(final String from, final PropertyMutator to) {
 		this(from, to, true, false);
 	}
 	
 	/**
 	 * Creates a new property rename transformation
 	 */
-	public RenamePropertyTransformation(final String from, final String to,
+	public RenamePropertyTransformation(final String from, final PropertyMutator to,
 			final boolean retainOriginal, final boolean cloneNestedProperties) {
 		this.from = Preconditions.checkNotNull(from);
-		this.to = new PropertyMutator(to);
+		this.to = Preconditions.checkNotNull(to);
 		this.retainOriginal = retainOriginal;
 		this.cloneNestedProperties = cloneNestedProperties;
 	}

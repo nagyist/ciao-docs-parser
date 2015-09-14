@@ -12,7 +12,7 @@ import com.google.common.collect.Lists;
 /**
  * Transforms an incoming set of properties
  */
-public class PropertiesTransformer implements PropertiesExtractor<Map<String, Object>> {
+public class PropertiesTransformer implements PropertiesExtractor<Map<String, Object>>, PropertiesTransformation {
 	/**
 	 * If true, the transformation is performed directly on the input properties,
 	 * otherwise the input properties are cloned before transformation
@@ -30,11 +30,16 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	public Map<String, Object> extractProperties(final Map<String, Object> source) throws UnsupportedDocumentTypeException {
 		final Map<String, Object> destination = inPlace ? source : PropertyCloneUtils.deepClone(source);
 		
+		apply(source, destination);
+		
+		return destination;
+	}
+	
+	@Override
+	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
 		for (final PropertiesTransformation transformation: transformations) {
 			transformation.apply(source, destination);
 		}
-		
-		return destination;
 	}
 	
 	public boolean isInPlace() {
@@ -60,10 +65,21 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	}
 	
 	public void renameProperty(final String from, final String to) {
-		transformations.add(new RenamePropertyTransformation(from, to));
+		transformations.add(new RenamePropertyTransformation(from, new PropertyMutator(to)));
 	}
 	
 	public void splitProperty(final String from, final String pattern, final String... to) {
-		transformations.add(new SplitPropertyTransformation(from, pattern, to));
+		final PropertyMutator[] mutators = new PropertyMutator[to.length];
+		for (int index = 0; index < to.length; index++) {
+			mutators[index] = new PropertyMutator(to[index]);
+		}
+		transformations.add(new SplitPropertyTransformation(from, pattern, mutators));
+	}
+	
+	public PropertiesTransformer nestedTransformer(final String from) {
+		final PropertiesTransformer transformer = new PropertiesTransformer();
+		transformer.setInPlace(inPlace);
+		transformations.add(new NestedPropertiesTransformation(from, transformer));
+		return transformer;
 	}
 }

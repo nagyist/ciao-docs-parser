@@ -28,11 +28,15 @@ public class PropertyMutator {
 			target = candidate;
 		}
 		
-		target.put(segments[segments.length - 1], value);
+		setValue(target, segments[segments.length - 1], value);
 	}
 	
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	protected void setValue(final Map<String, Object> destination, final String name, final Object value) {
+		destination.put(name, value);
 	}
 }
