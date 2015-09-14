@@ -19,6 +19,7 @@ import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 import uk.nhs.ciao.docs.parser.kings.PropertyTableExtractor.ValueMode;
 import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
+import uk.nhs.ciao.docs.parser.transformer.PropertyAppender;
 
 /**
  * Factory to create {@link PropertiesExtractor}s capable of
@@ -184,6 +185,34 @@ public class KingsPropertiesExtractorFactory {
 		transformer.splitProperty("Screened by", "(.+) on (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}).*",
 				"medicationsPharmacistScreeningAuthorName", "medicationsPharmacistScreeningDate");
 		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
+		
+		transformer.combineProperties("admissionDetails",
+				"Self Discharge", "Date of Admission", "Method of admission", "Source of admission");
+		
+		transformer.combineProperties("dischargeDetails",
+				"Ward", "Consultant", "Specialty", "Date of Discharge", "Discharge Address", "Discharge Status");
+
+		transformer.combineProperties("plan", 
+				"Recommended further mgmt/action by GP", "Pharmacy recommendations", "External Referral",
+				"Next appointment", "Consultant follow up");
+		
+		transformer.combineProperties("diagnoses",
+				"Main Diagnosis", "Other Diagnosis", "Other");
+		
+		transformer.combineProperties("procedures",
+				"Procedure(s)/Operation(s)", "Operation notes");
+		
+		transformer.combineProperties("investigations",
+				"Laboratory", "Radiology", "Future tests/procedure booked");
+		
+		transformer.nestedTransformer("allergens").combineProperties(
+				new PropertyAppender("allergies"), "Allergen", "Reaction", "Comments");
+		
+		transformer.nestedTransformer("dischargeMedication").combineProperties(
+				new PropertyAppender("medications"), "Medication", "Status", "Supply", "Pharmacy");
+		
+		transformer.addTransformation(new GPPropertiesTransformation());
+		
 		
 		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
 		chain.addExtractor(validator);

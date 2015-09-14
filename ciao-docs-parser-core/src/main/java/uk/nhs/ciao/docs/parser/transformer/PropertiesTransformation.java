@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Transforms properties from the source map into the destinations map
  */
-interface PropertiesTransformation {
+public interface PropertiesTransformation {
 	/**
 	 * Transforms properties from the source map into the destinations map
 	 * <p>

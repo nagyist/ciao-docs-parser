@@ -76,6 +76,14 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		transformations.add(new SplitPropertyTransformation(from, pattern, mutators));
 	}
 	
+	public void combineProperties(final String to, final String... from) {
+		combineProperties(new PropertyMutator(to), from);
+	}
+	
+	public void combineProperties(final PropertyMutator to, final String... from) {
+		transformations.add(new CombinePropertiesTransformation(to, from));
+	}
+	
 	public PropertiesTransformer nestedTransformer(final String from) {
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.setInPlace(inPlace);
