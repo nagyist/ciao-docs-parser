@@ -44,8 +44,7 @@ public class SplitPropertyTransformation implements PropertiesTransformation {
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source,
-			final Map<String, Object> destination) {
+	public void apply(final Map<String, Object> source, final MappedProperties destination) {
 		if (!source.containsKey(from)) {
 			return;
 		}
@@ -66,7 +65,7 @@ public class SplitPropertyTransformation implements PropertiesTransformation {
 			final String value = matcher.group(index + 1); // one-based
 			
 			if (index < to.size()) {
-				to.get(index).set(destination, value);
+				to.get(index).set(destination, PropertyName.valueOf(from), value);
 			}
 		}
 	}

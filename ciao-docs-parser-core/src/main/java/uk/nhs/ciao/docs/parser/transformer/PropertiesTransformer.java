@@ -3,8 +3,12 @@ package uk.nhs.ciao.docs.parser.transformer;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
+import uk.nhs.ciao.docs.parser.transformer.MappedProperties.RootMappedProperties;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -13,6 +17,8 @@ import com.google.common.collect.Lists;
  * Transforms an incoming set of properties
  */
 public class PropertiesTransformer implements PropertiesExtractor<Map<String, Object>>, PropertiesTransformation {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesTransformer.class);
+	
 	/**
 	 * If true, the transformation is performed directly on the input properties,
 	 * otherwise the input properties are cloned before transformation
@@ -28,15 +34,20 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	
 	@Override
 	public Map<String, Object> extractProperties(final Map<String, Object> source) throws UnsupportedDocumentTypeException {
-		final Map<String, Object> destination = inPlace ? source : PropertyCloneUtils.deepClone(source);
+		final RootMappedProperties destination = new RootMappedProperties(source,
+				inPlace ? source : PropertyCloneUtils.deepClone(source));
 		
 		apply(source, destination);
 		
-		return destination;
+		if (LOGGER.isDebugEnabled() && !destination.getUnmappedProperties().isEmpty()) {
+			LOGGER.debug("Unmapped properties: {}", destination.getUnmappedProperties());
+		}
+		
+		return destination.getDestination();
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
+	public void apply(final Map<String, Object> source, final MappedProperties destination) {
 		for (final PropertiesTransformation transformation: transformations) {
 			transformation.apply(source, destination);
 		}
