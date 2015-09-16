@@ -2,6 +2,10 @@ package uk.nhs.ciao.docs.parser.transformer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
@@ -13,6 +17,8 @@ import com.google.common.collect.Lists;
  * Transforms an incoming set of properties
  */
 public class PropertiesTransformer implements PropertiesExtractor<Map<String, Object>>, PropertiesTransformation {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesTransformer.class);
+	
 	/**
 	 * If true, the transformation is performed directly on the input properties,
 	 * otherwise the input properties are cloned before transformation
@@ -30,15 +36,25 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	public Map<String, Object> extractProperties(final Map<String, Object> source) throws UnsupportedDocumentTypeException {
 		final Map<String, Object> destination = inPlace ? source : PropertyCloneUtils.deepClone(source);
 		
-		apply(source, destination);
+		final boolean includeContainers = false;
+		final Set<String> unmappedProperties = PropertyName.findAll(source, includeContainers);
+		final MappedPropertiesRecorder recorder = new MappedPropertiesRecorder();
+		
+		apply(recorder, source, destination);
+
+		unmappedProperties.removeAll(recorder.getMappedProperties());
+		
+		if (LOGGER.isDebugEnabled() && !unmappedProperties.isEmpty()) {
+			LOGGER.debug("Unmapped properties: {}", unmappedProperties);
+		}
 		
 		return destination;
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
+	public void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination) {
 		for (final PropertiesTransformation transformation: transformations) {
-			transformation.apply(source, destination);
+			transformation.apply(recorder, source, destination);
 		}
 	}
 	

@@ -33,7 +33,7 @@ public class RenamePropertyTransformation implements PropertiesTransformation {
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source,
+	public void apply(final TransformationRecorder recorder, final Map<String, Object> source,
 			final Map<String, Object> destination) {
 		if (!source.containsKey(from)) {
 			return;
@@ -44,6 +44,6 @@ public class RenamePropertyTransformation implements PropertiesTransformation {
 			value = PropertyCloneUtils.deepCloneNestedProperties(value);
 		}
 		
-		to.set(destination, value);
+		to.set(recorder, from, destination, value);
 	}
 }

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 
 import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformation;
 import uk.nhs.ciao.docs.parser.transformer.PropertyMutator;
+import uk.nhs.ciao.docs.parser.transformer.TransformationRecorder;
 
 /**
  * Custom {@link PropertiesTransformation} to handle the mapping of incoming
@@ -27,7 +28,7 @@ public class GPPropertiesTransformation implements PropertiesTransformation {
 	private final PropertyMutator postcode = new PropertyMutator("usualGPAddress.postcode");
 	
 	@Override
-	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
+	public void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination) {
 		final Object candidate = source.get("GP");
 		if (!(candidate instanceof List<?>)) {
 			return;
@@ -39,16 +40,21 @@ public class GPPropertiesTransformation implements PropertiesTransformation {
 			return;
 		}
 		
-		orgName.set(destination, lines.get(1));
+		orgName.set(recorder, "GP[1]", destination, lines.get(1));
 		if (lines.size() < 3) {
 			return;
 		}
 		
 		if (lines.size() > 3) {
 			final List<String> addressLines = Lists.newArrayList(lines.subList(2, lines.size() - 1));
-			this.addressLines.set(destination, addressLines);
+			final List<String> from = Lists.newArrayList();
+			for (int index = 2; index < lines.size() - 1; index++) {
+				from.add("GP[" + index + "]");
+			}
+			
+			this.addressLines.set(recorder, from, destination, addressLines);
 		}
 		
-		postcode.set(destination, lines.get(lines.size() - 1));
+		postcode.set(recorder, "GP[" + (lines.size() - 1) + "]", destination, lines.get(lines.size() - 1));
 	}
 }

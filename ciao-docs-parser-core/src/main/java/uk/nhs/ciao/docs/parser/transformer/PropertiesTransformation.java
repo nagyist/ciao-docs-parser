@@ -11,5 +11,5 @@ public interface PropertiesTransformation {
 	 * <p>
 	 * The source and destination map may be the same instance.
 	 */
-	void apply(final Map<String, Object> source, final Map<String, Object> destination);
+	void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination);
 }

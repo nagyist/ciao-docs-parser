@@ -1,5 +1,6 @@
 package uk.nhs.ciao.docs.parser.transformer;
 
+import java.util.Collection;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
@@ -14,7 +15,21 @@ public class PropertyMutator {
 		this.segments = name.split("\\.");
 	}
 	
-	public void set(final Map<String, Object> destination, final Object value) {
+	public void set(final TransformationRecorder recorder, final String from,
+			final Map<String, Object> destination, final Object value) {
+		set(destination, value);
+		recorder.record(from, name);
+	}
+	
+	public void set(final TransformationRecorder recorder, final Collection<String> fromAll,
+			final Map<String, Object> destination, final Object value) {
+		set(destination, value);
+		for (final String from: fromAll) {
+			recorder.record(from, name);
+		}
+	}
+	
+	private void set(final Map<String, Object> destination, final Object value) {
 		Map<String, Object> target = destination;
 		for (int index = 0; index < segments.length - 1; index++) {
 			final String segment = segments[index];

@@ -37,7 +37,7 @@ public class CombinePropertiesTransformation implements PropertiesTransformation
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
+	public void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination) {
 		final List<Entry<String, Object>> properties = Lists.newArrayList();
 		for (final String name: from) {
 			final Object value = retainOriginal ? source.get(name) : source.remove(name);
@@ -45,7 +45,7 @@ public class CombinePropertiesTransformation implements PropertiesTransformation
 		}
 		
 		final String value = combineProperties(properties);
-		to.set(destination, value);
+		to.set(recorder, from, destination, value);
 	}
 	
 	/**

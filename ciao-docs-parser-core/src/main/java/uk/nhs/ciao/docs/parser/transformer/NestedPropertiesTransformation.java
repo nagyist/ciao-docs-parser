@@ -15,18 +15,22 @@ public class NestedPropertiesTransformation implements PropertiesTransformation 
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
+	public void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination) {
 		final Object originalValue = source.get(from);
 		
 		if (originalValue instanceof Map) {
 			@SuppressWarnings("unchecked")
 			final Map<String, Object> nestedProperties = (Map<String, Object>)originalValue;
-			transformation.apply(nestedProperties, destination);
+			transformation.apply(new NestedTransformationRecorder(from, recorder),
+					nestedProperties, destination);
 		} else if (originalValue instanceof List) {
 			@SuppressWarnings("unchecked")
 			final List<Map<String, Object>> list = (List<Map<String, Object>>)originalValue;
+			int index = 0;
 			for (final Map<String, Object> nestedProperties: list) {
-				transformation.apply(nestedProperties, destination);
+				transformation.apply(new NestedTransformationRecorder(PropertyName.valueOf(from, index), recorder),
+					nestedProperties, destination);
+				index++;
 			}
 		}
 	}
