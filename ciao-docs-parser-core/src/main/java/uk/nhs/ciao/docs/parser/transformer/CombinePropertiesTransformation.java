@@ -1,5 +1,6 @@
 package uk.nhs.ciao.docs.parser.transformer;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,7 +22,7 @@ import com.google.common.collect.Sets;
  * a different output format, a subclass can be created overriding {@link #combineProperties(List)}.
  */
 public class CombinePropertiesTransformation implements PropertiesTransformation {
-	private final Set<PropertyName> from;
+	private final Set<String> from;
 	private final PropertyMutator to;
 	private final boolean retainOriginal;
 	
@@ -30,25 +31,21 @@ public class CombinePropertiesTransformation implements PropertiesTransformation
 	}
 	
 	public CombinePropertiesTransformation(final PropertyMutator to, final boolean retainOriginal, final String... from) {
-		this.from = Sets.newLinkedHashSet();
-		for (final String name: from) {
-			this.from.add(PropertyName.valueOf(name));
-		}
-		
+		this.from = Sets.newLinkedHashSet(Arrays.asList(from));
 		this.to = Preconditions.checkNotNull(to);
 		this.retainOriginal = retainOriginal;
 	}
 	
 	@Override
-	public void apply(final Map<String, Object> source, final MappedProperties destination) {
+	public void apply(final Map<String, Object> source, final Map<String, Object> destination) {
 		final List<Entry<String, Object>> properties = Lists.newArrayList();
-		for (final PropertyName name: from) {
-			final Object value = retainOriginal ? source.get(name.getName()) : source.remove(name.getName());
-			properties.add(SimpleEntry.valueOf(name.getName(), value));
+		for (final String name: from) {
+			final Object value = retainOriginal ? source.get(name) : source.remove(name);
+			properties.add(SimpleEntry.valueOf(name, value));
 		}
 		
 		final String value = combineProperties(properties);
-		to.set(destination, from, value);
+		to.set(destination, value);
 	}
 	
 	/**
