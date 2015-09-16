@@ -34,63 +34,45 @@ public final class PropertyName {
 		final Set<String> names = Sets.newLinkedHashSet();
 		
 		if (map != null) {
-			findAll(names, null, map, includeContainers);
+			addChildNames(names, null, map, includeContainers);
 		}
 			
 		return names;
 	}
 	
-	private static void findAll(final Set<String> names, final String parent, final Map<String, Object> container, boolean includeContainers) {
+	private static void addChildNames(final Set<String> names, final String parent, final Map<String, Object> container, boolean includeContainers) {
 		for (final Entry<String, Object> entry: container.entrySet()) {
 			final String name = valueOf(parent, entry.getKey());
 			final Object value = entry.getValue();
-			
-			if (value instanceof Map<?,?>) {
-				if (includeContainers) {
-					names.add(name);
-				}
-				
-				@SuppressWarnings("unchecked")
-				final Map<String, Object> map = (Map<String, Object>)value;
-				findAll(names, name, map, includeContainers);
-			} else if (value instanceof List<?>) {
-				if (includeContainers) {
-					names.add(name);
-				}
-				
-				final List<?> list = (List<?>)value;				
-				findAll(names, name, list, includeContainers);
-			} else {
-				names.add(name);
-			}
+			addNameAndChildNames(names, name, value, includeContainers);
 		}
 	}
 	
-	private static void findAll(final Set<String> names, final String parent, final List<?> container, boolean includeContainers) {
+	private static void addChildNames(final Set<String> names, final String parent, final List<?> container, boolean includeContainers) {
 		int index = 0;
 		for (final Object value: container) {
 			final String name = valueOf(parent, index);
-			
-			if (value instanceof Map<?,?>) {
-				if (includeContainers) {
-					names.add(name);
-				}
-				
-				@SuppressWarnings("unchecked")
-				final Map<String, Object> map = (Map<String, Object>)value;
-				findAll(names, name, map, includeContainers);
-			} else if (value instanceof List<?>) {
-				if (includeContainers) {
-					names.add(name);
-				}
-				
-				final List<?> list = (List<?>)value;				
-				findAll(names, name, list, includeContainers);
-			} else {
-				names.add(name);
-			}
-			
+			addNameAndChildNames(names, name, value, includeContainers);
 			index++;
 		}
+	}
+	
+	private static void addNameAndChildNames(final Set<String> names, final String name, final Object value, boolean includeContainers) {
+		if (includeContainers || !isContainer(value)) {
+			names.add(name);
+		}
+		
+		if (value instanceof Map<?,?>) {
+			@SuppressWarnings("unchecked")
+			final Map<String, Object> map = (Map<String, Object>)value;
+			addChildNames(names, name, map, includeContainers);
+		} else if (value instanceof List<?>) {
+			final List<?> list = (List<?>)value;				
+			addChildNames(names, name, list, includeContainers);
+		}
+	}
+	
+	private static boolean isContainer(final Object value) {
+		return (value instanceof Map<?, ?>) || value instanceof List<?>;
 	}
 }
