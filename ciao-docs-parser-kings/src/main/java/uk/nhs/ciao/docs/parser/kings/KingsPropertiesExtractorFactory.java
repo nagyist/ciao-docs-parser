@@ -176,14 +176,14 @@ public class KingsPropertiesExtractorFactory {
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.renameProperty("Ward", "documentAuthorWorkgroupName");
 		transformer.renameProperty("Hospital Number", "patientLocalID");
-		transformer.renameProperty("Consultant", "documentAuthorName");
+		transformer.renameProperty("Consultant", "documentAuthorFullName");
 		transformer.renameProperty("NHS Number", "patientNHSNo");
-		transformer.renameProperty("Patient Name", "patientName.fullName");
+		transformer.renameProperty("Patient Name", "patientFullName");
 		transformer.renameProperty("D.O.B", "patientBirthDate");
-		transformer.renameProperty("Usual residence", "patientAddress.fullAddress");
+		transformer.renameProperty("Usual residence", "patientAddressFull");
 		transformer.renameProperty("Clinical Narative", "clinicalSummary");
 		transformer.splitProperty("Screened by", "(.+) on (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}).*",
-				"medicationsPharmacistScreeningAuthorName.fullName", "medicationsPharmacistScreeningDate");
+				"medicationsPharmacistScreeningAuthorFullName", "medicationsPharmacistScreeningDate");
 		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
 		
 		transformer.combineProperties("admissionDetails",
