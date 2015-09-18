@@ -65,7 +65,7 @@
     "fullAddress":"36 Muirkirk Road, Catford LONDON, SE6 1BU"
   },
   "clinicalSummary":"We treated her as sepsis. CXR showed ? lesion in right upper lobe and also showed patchy shadows. We arranged for CT CAP on view of loss of weight and lesions in right upper lobe. CT CAP showed achlasia hernia and no evidence of malignancy. We treated her with antibiotics for urinary tract infection. She was stable during the ward stay but she was not calm and screaming most of the time, but not aggressive and harmful to anyone on ward. However, she became a lot calmer with Quetiapine. She was discharged with Quetiapine low dose.",
-  "medicationsPharmacistScreeningAuthorName": "John Adams",
+  "medicationsPharmacistScreeningAuthorName": {"fullName": "John Adams"},
   "medicationsPharmacistScreeningDate": "2015-06-09 14:42:00.000",
   "medicationsPharmacistScreeningAuthorTelephone":"546"
 }

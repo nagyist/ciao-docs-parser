@@ -183,7 +183,7 @@ public class KingsPropertiesExtractorFactory {
 		transformer.renameProperty("Usual residence", "patientAddress.fullAddress");
 		transformer.renameProperty("Clinical Narative", "clinicalSummary");
 		transformer.splitProperty("Screened by", "(.+) on (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}).*",
-				"medicationsPharmacistScreeningAuthorName", "medicationsPharmacistScreeningDate");
+				"medicationsPharmacistScreeningAuthorName.fullName", "medicationsPharmacistScreeningDate");
 		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
 		
 		transformer.combineProperties("admissionDetails",
