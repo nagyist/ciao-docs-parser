@@ -13,11 +13,13 @@
 	<import resource="classpath*:META-INF/spring/repositories/${repositoryConfig}.xml"/>
 	<import resource="classpath*:META-INF/spring/messaging/${messagingConfig}.xml"/>
     
+    <bean id="documentParserRoutes" class="uk.nhs.ciao.docs.parser.DocumentParserRoutes" />
+    
 	<camelContext xmlns="http://camel.apache.org/schema/spring" id="camel" trace="${camel.log.trace}" streamCache="true" useMDCLogging="${camel.log.mdc}">
 		<properties>
 			<property key="CamelLogDebugStreams" value="${camel.log.debugStreams}" />
 		</properties>
 		
-		<package>uk.nhs.ciao.docs.parser</package>		
+		<routeBuilder ref="documentParserRoutes" /> 
 	</camelContext>
 </beans>
