@@ -24,8 +24,8 @@ import uk.nhs.ciao.docs.parser.transformer.TransformationRecorder;
  * <li>${postcode} -> usualGPAddress.postcode */
 public class GPPropertiesTransformation implements PropertiesTransformation {
 	private final PropertyMutator orgName = new PropertyMutator("usualGPOrgName");
-	private final PropertyMutator addressLines = new PropertyMutator("usualGPAddress.addressLine");
-	private final PropertyMutator postcode = new PropertyMutator("usualGPAddress.postcode");
+	private final PropertyMutator addressLines = new PropertyMutator("usualGPAddressLine");
+	private final PropertyMutator postcode = new PropertyMutator("usualGPAddressPostcode");
 	
 	@Override
 	public void apply(final TransformationRecorder recorder, final Map<String, Object> source, final Map<String, Object> destination) {
