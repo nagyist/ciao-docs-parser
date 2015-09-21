@@ -87,7 +87,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 	 */
 	public static final class FileType {
 		public static final String CONTROL = "control";
-		public static final String EVENT = "state";
+		public static final String EVENT = "event";
 		
 		private FileType() {
 			// Suppress default constructor
