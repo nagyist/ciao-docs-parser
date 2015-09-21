@@ -32,12 +32,15 @@ import com.google.common.base.Strings;
  * </pre>
  * <p>
  * State event types:
+ * <li><code>preparation-failed</code> - a message/document has failed preparation
+ * <li><code>sending</code> - a message is being sent
  * <li><code>sent</code> - a message was successfully sent
  * <li><code>send-failed</code> - a message failed to send
  * <li><code>received</code> - a message was received
  * <p>
  * State message types:
  * <ul>
+ * <li><code>document</code> - file related to the original source document
  * <li><code>bus-message</code> - file containing an ITK business message
  * <li><code>inf-ack</code> - file containing an ITK infrastructure ack
  * <li><code>bus-ack</code> - file containing an ITK business ack
@@ -97,6 +100,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 	 * @see Header#EVENT_TYPE
 	 */
 	public static final class EventType {
+		public static final String MESSAGE_PREPARATION_FAILED = "preparation-failed";
 		public static final String MESSAGE_SENDING = "sending";
 		public static final String MESSAGE_SENT = "sent";
 		public static final String MESSAGE_SEND_FAILED = "send-failed";
@@ -113,6 +117,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 	 * Values are supplied via the {@link Exchange#FILE_NAME} header
 	 */
 	public static final class MessageType {
+		public static final String DOCUMENT = "document";
 		public static final String BUSINESS_MESSAGE = "bus-message";
 		public static final String INFRASTRUCTURE_ACK = "inf-ack";
 		public static final String INFRASTRUCTURE_NACK = "inf-nack";
