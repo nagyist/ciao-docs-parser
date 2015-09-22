@@ -1,12 +1,14 @@
 package uk.nhs.ciao.docs.parser;
 
+import static uk.nhs.ciao.logging.CiaoLogMessage.logMsg;
+
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import uk.nhs.ciao.logging.CiaoLogger;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
@@ -20,7 +22,7 @@ import com.google.common.collect.Sets;
  * The extraction of each property/regex pair is handled by instances of {@link RegexPropertyFinder}.
  */
 public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RegexPropertiesExtractor.class);
+	private static final CiaoLogger LOGGER = CiaoLogger.getLogger(RegexPropertiesExtractor.class);
 	
 	private final Set<RegexPropertyFinder> propertyFinders;
 	private String fromNodeText;
@@ -94,7 +96,9 @@ public class RegexPropertiesExtractor implements PropertiesExtractor<Document> {
 		if (properties.isEmpty()) {
 			throw new UnsupportedDocumentTypeException("No matching properties could be found");
 		}
-		LOGGER.trace("properties: {}", properties);
+		
+		LOGGER.debug(logMsg("Extracted document properties from DOM using regular expressions")
+				.documentProperties(properties));
 		
 		return properties;
 	}

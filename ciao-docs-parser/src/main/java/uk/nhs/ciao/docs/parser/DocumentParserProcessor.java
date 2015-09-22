@@ -1,5 +1,7 @@
 package uk.nhs.ciao.docs.parser;
 
+import static uk.nhs.ciao.logging.CiaoLogMessage.logMsg;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -7,11 +9,10 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import uk.nhs.ciao.docs.parser.DocumentParser;
 import uk.nhs.ciao.docs.parser.StandardProperties.Metadata;
+import uk.nhs.ciao.logging.CiaoLogger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -24,7 +25,7 @@ import com.google.common.io.Closeables;
  * at runtime.
  */
 public class DocumentParserProcessor implements Processor {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserProcessor.class);
+	private static final CiaoLogger LOGGER = CiaoLogger.getLogger(DocumentParserProcessor.class);
 	
 	private final DocumentParser parser;
 	
@@ -50,14 +51,20 @@ public class DocumentParserProcessor implements Processor {
 	 */
 	@Override
 	public void process(final Exchange exchange) throws UnsupportedDocumentTypeException, IOException {
-		LOGGER.debug("process: {}", exchange);
+		LOGGER.debug(logMsg("process"));
 		
 		final Document originalDocument = toDocument(exchange.getIn());		
 		final InputStream inputStream = originalDocument.getContentStream();
 		
 		try {
+			LOGGER.info(logMsg("Attempting to parse document properties")
+					.originalFileName(originalDocument.getName()));
+			
 			final Map<String, Object> properties = parser.parseDocument(inputStream);
-			LOGGER.debug("Parsed document properties: {} -> {}", exchange, properties);
+
+			LOGGER.debug(logMsg("Parsed document properties")
+					.originalFileName(originalDocument.getName())
+					.documentProperties(properties));
 			
 			setOriginalDocumentMediaType(originalDocument, properties);
 			

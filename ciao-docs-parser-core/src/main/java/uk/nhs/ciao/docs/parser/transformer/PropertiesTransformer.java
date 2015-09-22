@@ -1,14 +1,14 @@
 package uk.nhs.ciao.docs.parser.transformer;
 
+import static uk.nhs.ciao.logging.CiaoLogMessage.logMsg;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
+import uk.nhs.ciao.logging.CiaoLogger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
  * Transforms an incoming set of properties
  */
 public class PropertiesTransformer implements PropertiesExtractor<Map<String, Object>>, PropertiesTransformation {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesTransformer.class);
+	private static final CiaoLogger LOGGER = CiaoLogger.getLogger(PropertiesTransformer.class);
 	
 	/**
 	 * If true, the transformation is performed directly on the input properties,
@@ -45,7 +45,7 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		unmappedProperties.removeAll(recorder.getMappedProperties());
 		
 		if (LOGGER.isDebugEnabled() && !unmappedProperties.isEmpty()) {
-			LOGGER.debug("Unmapped properties: {}", unmappedProperties);
+			LOGGER.debug(logMsg("Properties transformation contains unmapped properties").documentProperties(unmappedProperties));
 		}
 		
 		return destination;

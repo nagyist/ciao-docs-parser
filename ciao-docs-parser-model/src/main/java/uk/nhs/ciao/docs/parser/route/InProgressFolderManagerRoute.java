@@ -1,16 +1,16 @@
 package uk.nhs.ciao.docs.parser.route;
 
+import static org.apache.camel.builder.ExpressionBuilder.append;
 import static org.apache.camel.builder.PredicateBuilder.*;
+import static uk.nhs.ciao.logging.CiaoCamelLogMessage.camelLogMsg;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import uk.nhs.ciao.camel.BaseRouteBuilder;
+import uk.nhs.ciao.logging.CiaoCamelLogger;
 
 import com.google.common.base.Strings;
 
@@ -51,7 +51,7 @@ import com.google.common.base.Strings;
  * The timestamp format is <code>yyyyMMdd-HHmmssSSS</code> (in UTC)
  */
 public class InProgressFolderManagerRoute extends BaseRouteBuilder {
-	private static final Logger LOGGER = LoggerFactory.getLogger(InProgressFolderManagerRoute.class);
+	private static final CiaoCamelLogger LOGGER = CiaoCamelLogger.getLogger(InProgressFolderManagerRoute.class);
 	private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormat.forPattern("yyyyMMdd-HHmmssSSS").withZoneUTC();
 	
 	/**
@@ -61,6 +61,9 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 		public static final String ACTION = "ciao.inProgressFolder.action";
 		public static final String FILE_TYPE = "ciao.inProgressFolder.fileType";
 		public static final String EVENT_TYPE = "ciao.inProgressFolder.eventType";
+		
+		// Internal (private) headers
+		private static final String MESSAGE_TYPE = "ciao.inProgressFolder.messageType";
 		
 		private Header() {
 			// Suppress default constructor
@@ -180,8 +183,11 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 		from(getStoreControlFileUri())
 				
 			.bean(new ControlFileNameCalculator())
-			.log(LoggingLevel.DEBUG, LOGGER, "Attempting to write to control file: id=${headers.CamelCorrelationId}, fileName=${header.CamelFileName}")
 			.to(inProgressFolderRootUri + "?fileExist=Override")
+
+			.process(LOGGER.info(camelLogMsg("Stored control file in in-progress folder")
+					.documentId(header(Exchange.CORRELATION_ID))
+					.fileName(header(Exchange.FILE_NAME))))
 		.end();
 	}
 	
@@ -192,6 +198,11 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 				.redeliveryDelay(1))
 				
 			.to(getStoreEventFileHandlerUri())
+			
+			.process(LOGGER.info(camelLogMsg("Stored event file in in-progress folder")
+					.documentId(header(Exchange.CORRELATION_ID))
+					.eventName(append(append(header(Header.MESSAGE_TYPE), constant("-")), header(Header.EVENT_TYPE)))
+					.fileName(header(Exchange.FILE_NAME))))
 		.end();
 	}
 	
@@ -200,8 +211,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 			.errorHandler(noErrorHandler())
 			
 			.bean(new EventFileNameCalculator())
-			.log(LoggingLevel.DEBUG, LOGGER, "Attempting to write to event file: id=${headers.CamelCorrelationId}, fileName=${header.CamelFileName}")
-			.to(inProgressFolderRootUri + "?fileExist=Fail")
+			.to(inProgressFolderRootUri + "?fileExist=Fail")			
 		.end();
 	}
 	
@@ -223,7 +233,9 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 	
 	public class EventFileNameCalculator {
 		public void calculateFileName(final Message message) throws Exception {
-			final String originalName = Strings.nullToEmpty(message.getHeader(Exchange.FILE_NAME, String.class));
+			final String messageType = Strings.nullToEmpty(message.getHeader(Exchange.FILE_NAME, String.class));
+			message.setHeader(Header.MESSAGE_TYPE, messageType);
+			
 			final String id = message.getHeader(Exchange.CORRELATION_ID, String.class);
 			if (Strings.isNullOrEmpty(id)) {
 				throw new Exception("Missing header " + Exchange.CORRELATION_ID);
@@ -235,7 +247,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 			}
 			
 			final String timestamp = TIMESTAMP_FORMAT.print(System.currentTimeMillis());
-			final String fileName = id + "/events/" + timestamp + "-" + originalName + "-" + eventType;
+			final String fileName = id + "/events/" + timestamp + "-" + messageType + "-" + eventType;
 			message.setHeader(Exchange.FILE_NAME, fileName);
 		}
 	}

@@ -1,6 +1,7 @@
 package uk.nhs.ciao.docs.parser;
 
 import static uk.nhs.ciao.docs.parser.HeaderNames.*;
+import static uk.nhs.ciao.logging.CiaoCamelLogMessage.camelLogMsg;
 
 import java.io.File;
 import java.util.Arrays;
@@ -9,21 +10,20 @@ import java.util.UUID;
 import org.apache.camel.Exchange;
 import org.apache.camel.Expression;
 import org.apache.camel.Header;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spi.IdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import uk.nhs.ciao.CIPRoutes;
 import uk.nhs.ciao.camel.CamelApplication;
 import uk.nhs.ciao.configuration.CIAOConfig;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.exceptions.CIAOConfigurationException;
+import uk.nhs.ciao.logging.CiaoCamelLogger;
+import uk.nhs.ciao.logging.CiaoCamelLogger.ExceptionInclusion;
 
 /**
  * Configures multiple camel document parser routes determined by properties specified
@@ -70,7 +70,7 @@ import uk.nhs.ciao.exceptions.CIAOConfigurationException;
  * in the future.
  */
 public class DocumentParserRoutes extends CIPRoutes {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParserRoutes.class);
+	private static final CiaoCamelLogger LOGGER = CiaoCamelLogger.getLogger(DocumentParserRoutes.class);
 	private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormat.forPattern("yyyyMMdd-HHmmssSSS").withZoneUTC();
 	
 	/**
@@ -185,8 +185,20 @@ public class DocumentParserRoutes extends CIPRoutes {
 			
 			.streamCaching()
 			.doTry()
+				.process(LOGGER.info(camelLogMsg("Parsing incoming document")
+						.documentId(header(Exchange.CORRELATION_ID))
+						.eventName(constant("parsing-document"))
+						.originalFileName(header(SOURCE_FILE_NAME))
+						.inputDirectory(constant(inputFolder))))
+				
 				.processRef(processorId)
-				.log(LoggingLevel.INFO, LOGGER, "Parsed incoming document: ${file:name}")
+				
+				.process(LOGGER.info(camelLogMsg("Parsed incoming document")
+						.documentId(header(Exchange.CORRELATION_ID))
+						.eventName(constant("parsed-document"))
+						.originalFileName(header(SOURCE_FILE_NAME))
+						.inputDirectory(constant(inputFolder))))
+				
 				.marshal().json(JsonLibrary.Jackson)
 				
 				// Store details of configured file paths in the in-progress control directory
@@ -213,11 +225,18 @@ public class DocumentParserRoutes extends CIPRoutes {
 				.to("jms:queue:" + outputQueue)
 			.endDoTry()
 			.doCatch(UnsupportedDocumentTypeException.class)
-				.log(LoggingLevel.INFO, LOGGER, "Unsupported document type: ${file:name}")
+				.process(LOGGER.info(ExceptionInclusion.OMIT, camelLogMsg("Unable to parse document")
+						.documentId(header(Exchange.CORRELATION_ID))
+						.eventName(constant("unsupported-document-type"))
+						.originalFileName(header(SOURCE_FILE_NAME))
+						.inputDirectory(constant(inputFolder))))
 				.handled(false)
 			.doCatch(Exception.class)
-				.log(LoggingLevel.ERROR, LOGGER, "Exception while processing document: ${file:name}")
-				.to("log:" + LOGGER.getName() + "?level=ERROR&showCaughtException=true")
+				.process(LOGGER.error(camelLogMsg("Unable to parse document")
+						.documentId(header(Exchange.CORRELATION_ID))
+						.eventName(constant("document-parse-failed"))
+						.originalFileName(header(SOURCE_FILE_NAME))
+						.inputDirectory(constant(inputFolder))))
 				.handled(false);
 		}
 		
