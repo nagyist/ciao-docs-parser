@@ -232,7 +232,7 @@ public class DocumentParserRoutes extends CIPRoutes {
 						.inputDirectory(constant(inputFolder))))
 				.handled(false)
 			.doCatch(Exception.class)
-				.process(LOGGER.error(camelLogMsg("Unable to parse document")
+				.process(LOGGER.warn(camelLogMsg("Unable to parse document")
 						.documentId(header(Exchange.CORRELATION_ID))
 						.eventName(constant("document-parse-failed"))
 						.originalFileName(header(SOURCE_FILE_NAME))
