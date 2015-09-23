@@ -187,7 +187,7 @@ public class KingsPropertiesExtractorFactory {
 		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
 		
 		transformer.combineProperties("admissionDetails",
-				"Self Discharge", "Date of Admission", "Method of admission", "Source of admission");
+				"Reason For Admission", "Self Discharge", "Date of Admission", "Method of admission", "Source of admission");
 		
 		transformer.combineProperties("dischargeDetails",
 				"Ward", "Consultant", "Specialty", "Date of Discharge", "Discharge Address", "Discharge Status",
