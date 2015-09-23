@@ -44,8 +44,8 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 
 		unmappedProperties.removeAll(recorder.getMappedProperties());
 		
-		if (LOGGER.isDebugEnabled() && !unmappedProperties.isEmpty()) {
-			LOGGER.debug(logMsg("Properties transformation contains unmapped properties").documentProperties(unmappedProperties));
+		if (!unmappedProperties.isEmpty()) {
+			LOGGER.info(logMsg("Properties transformation contains unmapped properties").documentProperties(unmappedProperties));
 		}
 		
 		return destination;

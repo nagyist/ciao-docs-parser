@@ -190,7 +190,8 @@ public class KingsPropertiesExtractorFactory {
 				"Self Discharge", "Date of Admission", "Method of admission", "Source of admission");
 		
 		transformer.combineProperties("dischargeDetails",
-				"Ward", "Consultant", "Specialty", "Date of Discharge", "Discharge Address", "Discharge Status");
+				"Ward", "Consultant", "Specialty", "Date of Discharge", "Discharge Address", "Discharge Status",
+				"Discharged by");
 
 		transformer.combineProperties("plan", 
 				"Recommended further mgmt/action by GP", "Pharmacy recommendations", "External Referral",
