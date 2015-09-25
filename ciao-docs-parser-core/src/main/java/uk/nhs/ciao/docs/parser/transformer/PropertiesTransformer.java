@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.format.DateTimeFormat;
+
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.logging.CiaoLogger;
@@ -98,6 +100,17 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	
 	public void combineProperties(final PropertyMutator to, final String... from) {
 		transformations.add(new CombinePropertiesTransformation(to, from));
+	}
+	
+	public void reformatDateProperty(final String property, final String fromFormat, final String toFormat) {
+		formatDateProperty(property, fromFormat, property, toFormat);
+	}
+	
+	public void formatDateProperty(final String from, final String fromFormat, final String to, final String toFormat) {
+		transformations.add(new FormatDatePropertyTransformation(from,
+				DateTimeFormat.forPattern(fromFormat).withZoneUTC(),
+				new PropertyMutator(to),
+				DateTimeFormat.forPattern(toFormat).withZoneUTC()));
 	}
 	
 	public PropertiesTransformer nestedTransformer(final String from) {

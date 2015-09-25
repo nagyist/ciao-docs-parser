@@ -179,12 +179,19 @@ public class KingsPropertiesExtractorFactory {
 		transformer.renameProperty("Consultant", "documentAuthorFullName");
 		transformer.renameProperty("NHS Number", "patientNHSNo");
 		transformer.renameProperty("Patient Name", "patientFullName");
-		transformer.renameProperty("D.O.B", "patientBirthDate");
+		transformer.splitProperty("D.O.B", "(\\d{2}/\\d{2}/\\d{4}).*",
+				"patientBirthDate");
 		transformer.renameProperty("Usual residence", "patientAddressFull");
 		transformer.renameProperty("Clinical Narative", "clinicalSummary");
 		transformer.splitProperty("Screened by", "(.+) on (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}).*",
 				"medicationsPharmacistScreeningAuthorFullName", "medicationsPharmacistScreeningDate");
 		transformer.renameProperty("Contact Details", "medicationsPharmacistScreeningAuthorTelephone");
+		
+		transformer.reformatDateProperty("patientBirthDate", "dd/MM/yyyy", "yyyyMMdd");
+		transformer.reformatDateProperty("medicationsPharmacistScreeningDate",
+				"yyyy-MM-dd HH:mm:ss.SSS", "yyyyMMddHHmmss.SSS");
+		transformer.reformatDateProperty("Date of Admission", "dd/MM/yyyy HH:mm", "dd-MMM-yyyy, HH:mm");
+		transformer.reformatDateProperty("Date of Discharge", "dd/MM/yyyy HH:mm", "dd-MMM-yyyy, HH:mm");
 		
 		transformer.combineProperties("admissionDetails",
 				"Reason For Admission", "Self Discharge", "Date of Admission", "Method of admission", "Source of admission");
