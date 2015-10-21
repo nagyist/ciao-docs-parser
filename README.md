@@ -6,34 +6,17 @@ Introduction
 
 The purpose of this CIP is to process an incoming binary document by parsing it and extracting a set of key/value properties before publishing the parsed document for further processing by other CIPs.
 
-`ciao-docs-parser` is built on top of [Apache Camel][2] and [Spring
-Framework][3], and can be run as a stand-alone Java application, or via
-[Docker][4].
+`ciao-docs-parser` is built on top of [Apache Camel](http://camel.apache.org/) and [Spring Framework](http://projects.spring.io/spring-framework/), and can be run as a stand-alone Java application, or via [Docker](https://www.docker.com/).
 
-[2]: <http://camel.apache.org/>
-
-[3]: <http://projects.spring.io/spring-framework/>
-
-[4]: <https://www.docker.com/>
-
-Each application can host multiple [routes][5], where each route follows the
-following basic structure:
-
-[5]: <http://camel.apache.org/routes.html>
+Each application can host multiple [routes](<http://camel.apache.org/routes.html), where each route follows the following basic structure:
 
 >   input folder -\> `DocumentParser` -\> output queue (JMS)
 
-The details of the JMS queues and document parsers are specified at runtime
-through a combination of [ciao-configuration][6] properties and Spring XML
-files.
-
-[6]: <https://github.com/nhs-ciao/ciao-utils>
+The details of the JMS queues and document parsers are specified at runtime through a combination of [ciao-configuration](https://github.com/nhs-ciao/ciao-utils) properties and Spring XML files.
 
 The following document parsers are provided:
 
--   [TikaDocumentParser][7] - A parser backed by [Apache Tika](https://tika.apache.org/). Tika is used to interpret the document file format and a configured 'PropertiesExtractor' is used to extract key/value pairs from the text.
-
-[7]: <./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/TikaDocumentParser.java>
+-   [TikaDocumentParser](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/TikaDocumentParser.java) - A parser backed by [Apache Tika](https://tika.apache.org/). Tika is used to interpret the document file format and a configured 'PropertiesExtractor' is used to extract key/value pairs from the text.
 
 -   [MultiDocumentEnricher](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/MultiDocumentParser.java) - A parser which sequentially delegates to multiple configured parsers until one succeeds or all fail to parse the document.
 
@@ -43,42 +26,28 @@ The following properties extractors are provided:
 
 - [ciao-docs-parser-kings](./ciao-docs-parser-kings) - Module which provides various parsers for Kings College University Hospital PDF documents.
 
-For more advanced usages, a custom document parser can be integrated by
-implementing parser Java interfaces and providing a suitable spring
-XML configuration on the classpath.
+For more advanced usages, a custom document parser can be integrated by implementing parser Java interfaces and providing a suitable spring XML configuration on the classpath.
 
 Configuration
 -------------
 
-For further details of how ciao-configuration and Spring XML interact, please
-see [ciao-core][8].
-
-[8]: <https://github.com/nhs-ciao/ciao-core>
+For further details of how ciao-configuration and Spring XML interact, please see [ciao-core](https://github.com/nhs-ciao/ciao-core).
 
 ### Spring XML
 
-On application start-up, a series of Spring Framework XML files are used to
-construct the core application objects. The created objects include the main
-Camel context, input/output components, routes and any intermediate processors.
+On application start-up, a series of Spring Framework XML files are used to construct the core application objects. The created objects include the main Camel context, input/output components, routes and any intermediate processors.
 
-The configuration is split into multiple XML files, each covering a separate
-area of the application. These files are selectively included at runtime via
-CIAO properties, allowing alternative technologies and/or implementations to be
-chosen. Each imported XML file can support a different set of CIAO properties.
+The configuration is split into multiple XML files, each covering a separate area of the application. These files are selectively included at runtime via CIAO properties, allowing alternative technologies and/or implementations to be chosen. Each imported XML file can support a different set of CIAO properties.
 
-The Spring XML files are loaded from the classpath under the
-[META-INF/spring][9] package.
-
-[9]: <./ciao-docs-parser/src/main/resources/META-INF/spring>
+The Spring XML files are loaded from the classpath under the [META-INF/spring](./ciao-docs-parser/src/main/resources/META-INF/spring) package.
 
 **Core:**
 
--   `beans.xml` - The main configuration responsible for initialising
-    properties, importing additional resources and starting Camel.
+-   `beans.xml` - The main configuration responsible for initialising properties, importing additional resources and starting Camel.
 
 **Repositories:**
 
-> An `IdempotentRepository' is configured to enable [multiple consumers](http://camel.apache.org/competing-consumers.html) access the same folder concurrently.
+> An `IdempotentRepository' is configured to enable [multiple consumers](http://camel.apache.org competing-consumers.html) access the same folder concurrently.
 
 - 'repository/memory.xml' - An in-memory implementation suitable for use when there is only a single consumer, or multiple-consumers are all contained within the same JVM instance.
 
@@ -97,8 +66,7 @@ The Spring XML files are loaded from the classpath under the
 
 ### CIAO Properties
 
-At runtime ciao-docs-parser uses the available CIAO properties to determine
-which Spring XML files to load, which Camel routes to create, and how individual routes and components should be wired.
+At runtime ciao-docs-parser uses the available CIAO properties to determine which Spring XML files to load, which Camel routes to create, and how individual routes and components should be wired.
 
 **Spring Configuration:**
 
@@ -115,9 +83,7 @@ which Spring XML files to load, which Camel routes to create, and how individual
 
 -   `documentParserRoutes` - A comma separated list of route names to build
 
-The list of route names serves two purposes. Firstly it determines how many
-routes to build, and secondly each name is used as a prefix to specify the
-individual properties of that route.
+The list of route names serves two purposes. Firstly it determines how many routes to build, and secondly each name is used as a prefix to specify the individual properties of that route.
 
 **Route Configuration:**
 
