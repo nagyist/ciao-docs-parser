@@ -28,7 +28,7 @@ The JSON representation of `ParsedDocument` follows the outlined structure. All 
 **`originalDocument.content` property is encoded in JSON as a Base64 string.**
 
 ### Example
-```JSON
+```javascript
 {
   "originalDocument": {
     "name": "hello.txt",
