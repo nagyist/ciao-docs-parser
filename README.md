@@ -116,7 +116,7 @@ The `completedFolder` and `errorFolder` route options can include [Camel Simple 
 
 The `inProgressFolder` folder option does not support Simple expressions - instead this option should be specified as a standard file path (absolute or relative to the working directory). While a document is being processed, data relating to the processing will be stored in a sub-folder of inProgressFolder/{correlationId}.
 
-> For more details of the in-progress folder structure, see the [state-machine](https://github.com/nhs-ciao/ciao-docs-finalizer/blob/docs/state-machine.md) documentation from `ciao-docs-finalizer`.
+> For more details of the in-progress folder structure, see the [state-machine](https://github.com/nhs-ciao/ciao-docs-finalizer/blob/master/docs/state-machine.md) documentation from `ciao-docs-finalizer`.
 
 ### Example
 ```INI
