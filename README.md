@@ -13,7 +13,7 @@ Each application can host multiple [routes](<http://camel.apache.org/routes.html
 >   input folder -\> [DocumentParser](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/DocumentParser.java) -\> output queue (JMS)
 
 -	*The input folder supports any document format recognised by the configured parsers and extractors.*
--	*The output queue format accepts a JSON-encoded representation of [ParsedDocument](./ciao-docs-parser-model/src/main/java/uk/nhs/ciao/docs/parser/ParsedDocument.java).*
+-	*The output queue format accepts a JSON-encoded representation of [ParsedDocument](docs/parsed-document.md).*
 
 The details of the JMS queues and document parsers are specified at runtime through a combination of [ciao-configuration](https://github.com/nhs-ciao/ciao-utils) properties and Spring XML files.
 
