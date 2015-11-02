@@ -1,5 +1,6 @@
 package uk.nhs.ciao.docs.parser.transformer;
 
+import uk.nhs.ciao.docs.parser.PropertyNames;
 import joptsimple.internal.Strings;
 
 import com.google.common.base.Preconditions;
@@ -18,7 +19,7 @@ public class NestedTransformationRecorder implements TransformationRecorder {
 	@Override
 	public void record(final String from, final String to) {
 		if (!Strings.isNullOrEmpty(from)) {
-			delegate.record(PropertyName.valueOf(fromPrefix, from), to);
+			delegate.record(PropertyNames.valueOf(fromPrefix, from), to);
 		}
 	}
 }

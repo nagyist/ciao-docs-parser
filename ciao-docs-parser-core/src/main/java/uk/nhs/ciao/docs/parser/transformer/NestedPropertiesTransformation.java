@@ -3,6 +3,8 @@ package uk.nhs.ciao.docs.parser.transformer;
 import java.util.List;
 import java.util.Map;
 
+import uk.nhs.ciao.docs.parser.PropertyNames;
+
 import com.google.common.base.Preconditions;
 
 public class NestedPropertiesTransformation implements PropertiesTransformation {
@@ -28,7 +30,7 @@ public class NestedPropertiesTransformation implements PropertiesTransformation 
 			final List<Map<String, Object>> list = (List<Map<String, Object>>)originalValue;
 			int index = 0;
 			for (final Map<String, Object> nestedProperties: list) {
-				transformation.apply(new NestedTransformationRecorder(PropertyName.valueOf(from, index), recorder),
+				transformation.apply(new NestedTransformationRecorder(PropertyNames.valueOf(from, index), recorder),
 					nestedProperties, destination);
 				index++;
 			}

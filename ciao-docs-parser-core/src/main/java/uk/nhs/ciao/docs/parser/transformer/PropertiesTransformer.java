@@ -9,6 +9,7 @@ import java.util.Set;
 import org.joda.time.format.DateTimeFormat;
 
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.PropertyNames;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.logging.CiaoLogger;
 
@@ -39,7 +40,7 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		final Map<String, Object> destination = inPlace ? source : PropertyCloneUtils.deepClone(source);
 		
 		final boolean includeContainers = false;
-		final Set<String> unmappedProperties = PropertyName.findAll(source, includeContainers);
+		final Set<String> unmappedProperties = PropertyNames.findAll(source, includeContainers);
 		final MappedPropertiesRecorder recorder = new MappedPropertiesRecorder();
 		
 		apply(recorder, source, destination);
