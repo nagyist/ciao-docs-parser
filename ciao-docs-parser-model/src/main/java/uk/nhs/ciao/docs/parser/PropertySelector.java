@@ -35,7 +35,7 @@ import com.google.common.collect.Maps;
  * <li><code>authors[*].*</code>
  * </ul>
  */
-public class PropertySelector {
+public final class PropertySelector {
 	/**
 	 * Special-case segment for matching any key in a dynamic map
 	 */

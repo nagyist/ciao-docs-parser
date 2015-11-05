@@ -1,0 +1,16 @@
+{
+	"name": "Mr Example",
+	"age": 28,
+	"addresses": [
+		{
+			"addressLine": "17 Somewhere Road",
+			"city": "London",
+			"postcode": "AB12 3CD"
+		},
+		{
+			"addressLine": "27 Somewhere Else",
+			"city": "Oxford",
+			"postcode": "CD34 5EF"
+		}
+	]
+}
