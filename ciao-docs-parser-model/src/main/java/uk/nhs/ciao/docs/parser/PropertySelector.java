@@ -353,7 +353,7 @@ public final class PropertySelector {
 	 * Wildcards (.*, or [*]) are represented using {@link #ANY_KEY} and {@link #ANY_INDEX}.
 	 */
 	private static List<Object> getSegmentsFromPath(final String path) {
-		if (path == null || path.length() == 0) {
+		if (Strings.isNullOrEmpty(path)) {
 			return Lists.newArrayList();
 		}
 		

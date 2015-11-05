@@ -117,6 +117,7 @@ public class PropertySelectorTest {
 		
 		Assert.assertEquals(expectedEntries, selector.selectAll(String.class, properties));
 		
+		Assert.assertEquals("addresses[*].city", selector.getPath());
 		Assert.assertNull(selector.selectValue(Long.class, properties));
 		Assert.assertTrue(selector.selectAllValues(Long.class, properties).isEmpty());
 	}
@@ -134,6 +135,7 @@ public class PropertySelectorTest {
 		final Collection<Object> values = selector.selectAllValues(properties);
 		Assert.assertEquals(Arrays.asList("17 Somewhere Road", "London", "AB12 3CD"), Lists.newArrayList(values));
 		
+		Assert.assertEquals("addresses[0].*", selector.getPath());
 		Assert.assertTrue(selector.isMulti());
 		Assert.assertFalse(selector.isRoot());
 	}
@@ -171,6 +173,12 @@ public class PropertySelectorTest {
 		Assert.assertEquals(PropertySelector.valueOf("names[0].*"), selector.getChild("*"));
 		Assert.assertEquals(PropertySelector.valueOf("names[0].*"), selector.getChild("*"));
 		Assert.assertEquals(PropertySelector.valueOf("names"), selector.getParent());
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testInvalidChildCreation() {
+		final PropertySelector selector = PropertySelector.valueOf("names[0]");
+		selector.getChild(null);
 	}
 	
 	private Map<String, Object> getFirstAddress() {
