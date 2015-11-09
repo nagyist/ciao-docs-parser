@@ -1,7 +1,5 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.util.Whitespace.collapseWhitespaceAndTrim;
-
 import java.util.Map;
 
 import uk.nhs.ciao.docs.parser.NodeStream;
@@ -12,9 +10,15 @@ import com.google.common.collect.Maps;
 
 public class SinglePropertyExtractor implements PropertiesExtractor<NodeStream> {
 	private final String propertyName;
+	private final WhitespaceMode whitespaceMode;
 	
 	public SinglePropertyExtractor(final String propertyName) {
+		this(propertyName, WhitespaceMode.COLLAPSE_AND_TRIM);
+	}
+	
+	public SinglePropertyExtractor(final String propertyName, final WhitespaceMode whitespaceMode) {
 		this.propertyName = propertyName;
+		this.whitespaceMode = whitespaceMode;
 	}
 	
 	@Override
@@ -25,7 +29,7 @@ public class SinglePropertyExtractor implements PropertiesExtractor<NodeStream> 
 		}
 		
 		final Map<String, Object> properties = Maps.newHashMap();
-		final String text = collapseWhitespaceAndTrim(nodes.take().getTextContent());
+		final String text = whitespaceMode.normalizeWhitespace(nodes.take().getTextContent());
 		properties.put(propertyName, text);
 		return properties;
 	}

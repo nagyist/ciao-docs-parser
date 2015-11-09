@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
  */
 public class SAXContentToDOMHandler extends DefaultHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SAXContentToDOMHandler.class);
+	private static final char NON_BREAKING_SPACE = 160;
 	
 	private final DocumentBuilder documentBuilder;
 	private final boolean whitespaceNormalisationEnabled;
@@ -112,11 +113,12 @@ public class SAXContentToDOMHandler extends DefaultHandler {
 	@Override
 	public void characters(final char[] ch, final int start, final int length)
 			throws SAXException {
+		final String string = toNormalizedString(ch, start, length);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("characters: {}", new String(ch, start, length));
+			LOGGER.trace("characters: {}", string);
 		}
 		
-		elements.getLast().appendChild(document.createTextNode(new String(ch, start, length)));
+		elements.getLast().appendChild(document.createTextNode(string));
 	}
 
 	@Override
@@ -124,7 +126,19 @@ public class SAXContentToDOMHandler extends DefaultHandler {
 			throws SAXException {
 		LOGGER.trace("ignorableWhitespace: {}", length);
 		
-		elements.getLast().appendChild(document.createTextNode(new String(ch, start, length)));
+		elements.getLast().appendChild(document.createTextNode(toNormalizedString(ch, start, length)));
+	}
+	
+	private String toNormalizedString(final char[] ch, final int start, final int length) {
+		// normalise non-breaking spaces to a standard space
+		// standard Java regex patterns and string trim do not work with non-breaking spaces
+		for (int index = start; index < length; index++) {
+			if (ch[index] == NON_BREAKING_SPACE) {
+				ch[index] = ' ';
+			}
+		}
+		
+		return new String(ch, start, length);
 	}
 	
 	/**

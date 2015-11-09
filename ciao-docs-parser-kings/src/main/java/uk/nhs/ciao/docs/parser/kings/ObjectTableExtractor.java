@@ -27,7 +27,11 @@ public class ObjectTableExtractor implements PropertiesExtractor<NodeStream> {
 	private final String propertyName;
 	
 	public ObjectTableExtractor(final XPath xpath, final String propertyName) throws XPathExpressionException {
-		this.expression = xpath.compile("./td/p");
+		this(xpath, "./td/p", propertyName);
+	}
+	
+	public ObjectTableExtractor(final XPath xpath, final String expression, final String propertyName) throws XPathExpressionException {
+		this.expression = xpath.compile(expression);
 		this.propertyName = propertyName;
 	}
 	
@@ -37,7 +41,7 @@ public class ObjectTableExtractor implements PropertiesExtractor<NodeStream> {
 		final List<String> names = Lists.newArrayList();
 		final List<Map<String, Object>> objects = Lists.newArrayList();
 		boolean addedNonEmptyName = false;
-		
+
 		while (nodes.hasNext()) {
 			final Node node = nodes.take();
 			
