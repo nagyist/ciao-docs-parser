@@ -1,23 +1,37 @@
 package uk.nhs.ciao.docs.parser.kings;
 
+import java.util.List;
 import java.util.Map;
 
 import uk.nhs.ciao.docs.parser.NodeStream;
 import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class SinglePropertyExtractor implements PropertiesExtractor<NodeStream> {
 	private final String propertyName;
+	private final ValueMode valueMode;
 	private final WhitespaceMode whitespaceMode;
 	
 	public SinglePropertyExtractor(final String propertyName) {
-		this(propertyName, WhitespaceMode.COLLAPSE_AND_TRIM);
+		this(propertyName, ValueMode.INITIAL_VALUE, WhitespaceMode.COLLAPSE_AND_TRIM);
+	}
+	
+	public SinglePropertyExtractor(final String propertyName, final ValueMode valueMode) {
+		this(propertyName, valueMode, WhitespaceMode.COLLAPSE_AND_TRIM);
 	}
 	
 	public SinglePropertyExtractor(final String propertyName, final WhitespaceMode whitespaceMode) {
+		this(propertyName, ValueMode.INITIAL_VALUE, whitespaceMode);
+	}
+	
+	public SinglePropertyExtractor(final String propertyName, final ValueMode valueMode,
+			final WhitespaceMode whitespaceMode) {
 		this.propertyName = propertyName;
+		this.valueMode = valueMode;
 		this.whitespaceMode = whitespaceMode;
 	}
 	
@@ -28,9 +42,38 @@ public class SinglePropertyExtractor implements PropertiesExtractor<NodeStream> 
 			return null;
 		}
 		
+		String value = null;
+		List<String> values = null;
+		while (nodes.hasNext()) {
+			final String text = nodes.take().getTextContent();
+			if (!Strings.isNullOrEmpty(text) && !text.trim().isEmpty()) {
+				if (Strings.isNullOrEmpty(value)) {
+					value = text;
+					
+					if (valueMode == ValueMode.INITIAL_VALUE) {
+						break;
+					}
+				} else if (valueMode == ValueMode.MULTIPLE_VALUES) {
+					if (values == null) {
+						values = Lists.newArrayList(whitespaceMode.normalizeWhitespace(value));
+					}
+					
+					values.add(whitespaceMode.normalizeWhitespace(text));
+				} else if (valueMode == ValueMode.SINGLE_VALUE) {
+					value += " " + text;
+				} // else INITIAL_VALUE => NOOP
+			}
+		}
+		
 		final Map<String, Object> properties = Maps.newHashMap();
-		final String text = whitespaceMode.normalizeWhitespace(nodes.take().getTextContent());
-		properties.put(propertyName, text);
+
+		if (values == null) {
+			value = whitespaceMode.normalizeWhitespace(value);
+			properties.put(propertyName, value);
+		} else {
+			properties.put(propertyName, values);
+		}
+		
 		return properties;
 	}
 }

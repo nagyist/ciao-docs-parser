@@ -25,6 +25,7 @@ import uk.nhs.ciao.docs.parser.TikaDocumentParser;
 import uk.nhs.ciao.docs.parser.TikaParserFactory;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
+import uk.nhs.ciao.docs.parser.kings.NestedObjectPropertyExtractor.DelegationMode;
 
 public class HtmlExample {
 	public static void main(final String[] args) throws Exception {
@@ -88,7 +89,8 @@ public class HtmlExample {
 				new SinglePropertyExtractor("doctorName")); // TODO: Will need transformation
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Medicines Reconcilation']]/tbody/tr/td/table/tbody/tr/td"),
-				new PropertyTableExtractor());
+				new NestedObjectPropertyExtractor("medicinesReconcilation", new PropertyTableExtractor()));
+		// TODO: Would a PrefixedPropertyExtractor work better? i.e. call a delegate then prefix all returned properties?
 		
 		final SplitterPropertiesExtractor summarySplitter = new SplitterPropertiesExtractor();
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[starts-with(.,'Discharge') and contains(.,'Notification')]]"),
@@ -101,7 +103,8 @@ public class HtmlExample {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Patient:'] and descendant::td[text()='NHS No.:']]"),
 				patientDetailsSplitter);
 		
-		// TODO: table[1] and table[2] are SPLIT key/value pair tables!
+		patientDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "./tbody"),
+				new PropertySplitTableExtractor(xpath, "(./tr/td/table)[1]/tbody/tr/td", "(./tr/td/table)[2]/tbody/tr/td"));
 		
 		patientDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td/table)[3]/tbody/tr/td"),
 				new PropertyTableExtractor(WhitespaceMode.TRIM));
@@ -114,19 +117,24 @@ public class HtmlExample {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Medication on Discharge']]"),
 				dischargeMedicationSplitter);
 		
-		dischargeMedicationSplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td/table)[not(descendant::td[text()='Drug'])]/tbody/tr/td"),
+		final SplitterPropertiesExtractor dischargeMedicationStaffSplitter = new SplitterPropertiesExtractor();
+		dischargeMedicationSplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td/table)[not(descendant::td[text()='Drug'])]/tbody/tr"),
+				new NestedObjectPropertyExtractor("dischargeMedicationStaff", dischargeMedicationStaffSplitter, DelegationMode.ONCE_PER_NODE));
+		
+		dischargeMedicationStaffSplitter.addSelection(new XPathNodeSelector(xpath, "./td"),
 				new PropertyTableExtractor());
 		
 		dischargeMedicationSplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td/table)[descendant::td[text()='Drug']]/tbody"),
 				new ObjectTableExtractor(xpath, "./tr[1]/td", "dischargeMedication"));
 		// TODO: Additional text details *may* be present in another mostly empty tr row!
 						
-		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Clinical Assessment']]/*/tr/td"),
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Clinical Assessment']]/tbody/tr/td"),
 				new PropertyTableExtractor());
 		
-		// TODO: Notes section
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[starts-with(.,'Notes')]]/tbody/tr/td/p"),
+				new SinglePropertyExtractor("Notes", ValueMode.MULTIPLE_VALUES));
 		
-		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Management']]/*/tr/td"),
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Management']]/tbody/tr/td"),
 				new PropertyTableExtractor());
 		
 		return new NodeStreamToDocumentPropertiesExtractor(splitter);

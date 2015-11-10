@@ -17,7 +17,6 @@ import uk.nhs.ciao.docs.parser.PropertiesValidator;
 import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
-import uk.nhs.ciao.docs.parser.kings.PropertyTableExtractor.ValueMode;
 import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
 import uk.nhs.ciao.docs.parser.transformer.PropertyAppender;
 

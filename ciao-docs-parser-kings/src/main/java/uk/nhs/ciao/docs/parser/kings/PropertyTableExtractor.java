@@ -15,19 +15,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
-	public enum ValueMode {
-		/**
-		 * Multiple values are stored in a list
-		 */
-		MULTIPLE_VALUES,
-		
-		
-		/**
-		 * Multiple values are appended as text as a single property value
-		 */
-		SINGLE_VALUE;
-	}
-	
 	private final ValueMode valueMode;
 	private final WhitespaceMode whitespaceMode;
 	
@@ -72,6 +59,7 @@ public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
 					}
 					
 					name = trimmedText.substring(0, trimmedText.length() - 1);
+					name = whitespaceMode.normalizeWhitespace(name);
 					value = null;
 					values = null;
 				} else if (!trimmedText.isEmpty()) {
@@ -82,10 +70,10 @@ public class PropertyTableExtractor implements PropertiesExtractor<NodeStream> {
 							values = Lists.newArrayList(whitespaceMode.normalizeWhitespace(value),
 									whitespaceMode.normalizeWhitespace(originalText));
 							value = null;
-						} else {
+						} else if (valueMode == ValueMode.SINGLE_VALUE) {
 							// append to existing value
 							value = value + " " + originalText;
-						}
+						} // else NOOP
 					} else {
 						values.add(whitespaceMode.normalizeWhitespace(originalText));
 					}
