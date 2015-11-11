@@ -37,7 +37,7 @@ public class HtmlEDNExtractorExample {
 	public static void main(final String[] args) throws Exception {
 		final HtmlEDNExtractorExample example = new HtmlEDNExtractorExample();
 		
-		for (final String name: Arrays.asList("Example6.htm", "Example7.htm", "Example8.htm")) {
+		for (final String name: Arrays.asList("Example6.htm", "Example7.htm", "Example8.htm", "Example9.htm", "Example10.htm")) {
 			System.out.println("##################################");
 			System.out.println("#");
 			System.out.println("# " + name);
