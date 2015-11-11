@@ -71,7 +71,7 @@ public class KentPropertiesExtractorFactory {
 				summarySplitter);
 		
 		summarySplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td)[starts-with(., 'This patient')]"),
-				new SinglePropertyExtractor("dischargeSummary")); // TODO: Will need transformation
+				new SinglePropertyExtractor("dischargeSummary"));
 		
 		final SplitterPropertiesExtractor patientDetailsSplitter = new SplitterPropertiesExtractor();
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Patient:'] and descendant::td[text()='NHS No.:']]"),
@@ -118,6 +118,9 @@ public class KentPropertiesExtractorFactory {
 		
 		transformer.splitProperty("dischargeSummary", "This patient was an? (.+) under the care of (.+)(?: \\(Specialty: (.+)\\)) on (.+) at (.+) on (.+). The patient was discharged on (.+?)\\s*.",
 				"patientType", "doctorName", "doctorSpeciality", "ward", "hospital", "admissionDate", "dischargeDate");
+		
+		// TODO: reformat dates - dd/MM/yyyy and dd/MM/yyyy HH:mm:ss -> yyyy-MM-dd and yyyy-MM-dd HH:mm:ss
+		// TODO: NHS number needs splitting into the number and the verification flag
 		
 		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
 		chain.addExtractor(transformer);
