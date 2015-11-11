@@ -26,6 +26,7 @@ import uk.nhs.ciao.docs.parser.TikaParserFactory;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.XPathNodeSelector;
 import uk.nhs.ciao.docs.parser.kings.NestedObjectPropertyExtractor.DelegationMode;
+import uk.nhs.ciao.docs.parser.kings.PrefixedPropertyExtractor.PrefixMode;
 
 public class HtmlExample {
 	public static void main(final String[] args) throws Exception {
@@ -89,8 +90,7 @@ public class HtmlExample {
 				new SinglePropertyExtractor("doctorName")); // TODO: Will need transformation
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Medicines Reconcilation']]/tbody/tr/td/table/tbody/tr/td"),
-				new NestedObjectPropertyExtractor("medicinesReconcilation", new PropertyTableExtractor()));
-		// TODO: Would a PrefixedPropertyExtractor work better? i.e. call a delegate then prefix all returned properties?
+				new PrefixedPropertyExtractor("medicinesReconcilation", new PropertyTableExtractor(), PrefixMode.CAMEL_CASE));
 		
 		final SplitterPropertiesExtractor summarySplitter = new SplitterPropertiesExtractor();
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[starts-with(.,'Discharge') and contains(.,'Notification')]]"),
