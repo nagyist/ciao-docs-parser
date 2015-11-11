@@ -14,12 +14,15 @@ import uk.nhs.ciao.docs.parser.extractor.ObjectTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PrefixMode;
 import uk.nhs.ciao.docs.parser.extractor.PrefixedPropertyExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractorChain;
 import uk.nhs.ciao.docs.parser.extractor.PropertySplitTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PropertyTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.SinglePropertyExtractor;
 import uk.nhs.ciao.docs.parser.extractor.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.extractor.ValueMode;
 import uk.nhs.ciao.docs.parser.extractor.WhitespaceMode;
+import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
+import uk.nhs.ciao.docs.parser.xml.NodeStream;
 import uk.nhs.ciao.docs.parser.xml.XPathNodeSelector;
 
 /**
@@ -45,8 +48,11 @@ public class KentPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "(/html/body/table[1]/tbody/tr/td/table/tbody/tr/td)[1]"),
 				new SinglePropertyExtractor("trustName"));
 		
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='AMENDED VERSION']]/tbody/tr[2]/td"),
+				new NestedObjectPropertyExtractor("amendedVersion", new PropertyTableExtractor()));
+		
 		final SplitterPropertiesExtractor hospitalDetailsSplitter = new SplitterPropertiesExtractor();
-		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[2]/tbody"), hospitalDetailsSplitter);
+		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[starts-with(.,'Ward Tel:')]]/tbody"), hospitalDetailsSplitter);
 		
 		hospitalDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "(./tr/td/table)[1]/tbody/tr/td"),
 				new SinglePropertyExtractor("hospitalName", WhitespaceMode.TRIM));
@@ -55,7 +61,7 @@ public class KentPropertiesExtractorFactory {
 				new KeyValuePropertyExtractor(":"));
 		
 		hospitalDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "./tr/td[starts-with(.,'Dear')]"),
-				new SinglePropertyExtractor("gpName")); // TODO: Will need transformation
+				new SinglePropertyExtractor("gpName"));
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Medicines Reconcilation']]/tbody/tr/td/table/tbody/tr/td"),
 				new PrefixedPropertyExtractor("medicinesReconcilation", new PropertyTableExtractor(), PrefixMode.CAMEL_CASE));
@@ -105,6 +111,17 @@ public class KentPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Management']]/tbody/tr/td"),
 				new PropertyTableExtractor());
 		
-		return new NodeStreamToDocumentPropertiesExtractor(splitter);
+		final PropertiesTransformer transformer = new PropertiesTransformer();
+		transformer.splitListProperty("hospitalName", "\\r?\\n", "hospitalName");
+		transformer.splitListProperty("Address", " *\\r?\\n *", "Address");
+		transformer.splitProperty("gpName", "Dear (.+)", "gpName");
+		
+		transformer.splitProperty("dischargeSummary", "This patient was an? (.+) under the care of (.+)(?: \\(Specialty: (.+)\\)) on (.+) at (.+) on (.+). The patient was discharged on (.+?)\\s*.",
+				"patientType", "doctorName", "doctorSpeciality", "ward", "hospital", "admissionDate", "dischargeDate");
+		
+		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
+		chain.addExtractor(transformer);
+		
+		return new NodeStreamToDocumentPropertiesExtractor(chain);
 	}
 }

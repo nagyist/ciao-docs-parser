@@ -95,6 +95,10 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		transformations.add(new SplitPropertyTransformation(from, pattern, mutators));
 	}
 	
+	public void splitListProperty(final String from, final String pattern, final String to) {
+		transformations.add(new SplitListPropertyTransformation(from, pattern, new PropertyMutator(to)));
+	}
+	
 	public void combineProperties(final String to, final String... from) {
 		combineProperties(new PropertyMutator(to), from);
 	}
