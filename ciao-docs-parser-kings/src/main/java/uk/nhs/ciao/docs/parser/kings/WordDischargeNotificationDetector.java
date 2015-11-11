@@ -2,9 +2,9 @@ package uk.nhs.ciao.docs.parser.kings;
 
 import java.util.Map;
 
-import uk.nhs.ciao.docs.parser.NodeStream;
-import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.xml.NodeStream;
 
 /**
  * Extractor to verify that the document contains the expected title for a word discharge notification document

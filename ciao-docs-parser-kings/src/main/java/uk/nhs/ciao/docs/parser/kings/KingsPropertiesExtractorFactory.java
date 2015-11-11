@@ -1,6 +1,6 @@
 package uk.nhs.ciao.docs.parser.kings;
 
-import static uk.nhs.ciao.docs.parser.RegexPropertyFinder.*;
+import static uk.nhs.ciao.docs.parser.extractor.RegexPropertyFinder.*;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
@@ -8,17 +8,21 @@ import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 
-import uk.nhs.ciao.docs.parser.DatePropertyConverter;
-import uk.nhs.ciao.docs.parser.NodeStream;
-import uk.nhs.ciao.docs.parser.NodeStreamToDocumentPropertiesExtractor;
-import uk.nhs.ciao.docs.parser.PropertiesExtractor;
-import uk.nhs.ciao.docs.parser.PropertiesExtractorChain;
-import uk.nhs.ciao.docs.parser.PropertiesValidator;
-import uk.nhs.ciao.docs.parser.RegexPropertiesExtractor;
-import uk.nhs.ciao.docs.parser.SplitterPropertiesExtractor;
-import uk.nhs.ciao.docs.parser.XPathNodeSelector;
+import uk.nhs.ciao.docs.parser.converter.DatePropertyConverter;
+import uk.nhs.ciao.docs.parser.extractor.NodeStreamToDocumentPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.extractor.ObjectTableExtractor;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractorChain;
+import uk.nhs.ciao.docs.parser.extractor.PropertyTableExtractor;
+import uk.nhs.ciao.docs.parser.extractor.RegexPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.extractor.SinglePropertyExtractor;
+import uk.nhs.ciao.docs.parser.extractor.SplitterPropertiesExtractor;
+import uk.nhs.ciao.docs.parser.extractor.ValueMode;
 import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
 import uk.nhs.ciao.docs.parser.transformer.PropertyAppender;
+import uk.nhs.ciao.docs.parser.validator.PropertiesValidator;
+import uk.nhs.ciao.docs.parser.xml.NodeStream;
+import uk.nhs.ciao.docs.parser.xml.XPathNodeSelector;
 
 /**
  * Factory to create {@link PropertiesExtractor}s capable of
@@ -157,10 +161,10 @@ public class KingsPropertiesExtractorFactory {
 				new PropertyTableExtractor());
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[count(preceding::b[text()='Consultant follow up:']) = 1 and count(following::b[text()='Discharge Medication']) = 1]/*/tr"),
-				new ObjectTableExtractor(xpath, "allergens"));
+				new ObjectTableExtractor(xpath, "./td/p", "allergens"));
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[count(preceding::b[text()='Discharge Medication']) = 1 and count(following::b[text()='Prescriber:']) = 1]/*/tr"),
-				new ObjectTableExtractor(xpath, "dischargeMedication"));
+				new ObjectTableExtractor(xpath, "./td/p", "dischargeMedication"));
 		
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::b[text()='Prescriber:']]/*/tr/td/p"),
 				new PropertyTableExtractor());

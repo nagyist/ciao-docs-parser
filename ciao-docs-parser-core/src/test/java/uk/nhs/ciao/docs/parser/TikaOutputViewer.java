@@ -42,6 +42,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import uk.nhs.ciao.docs.parser.xml.SAXContentToDOMHandler;
+
 import com.google.common.base.Throwables;
 import com.google.common.io.Closeables;
 

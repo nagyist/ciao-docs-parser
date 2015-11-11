@@ -8,9 +8,9 @@ import java.util.Set;
 
 import org.joda.time.format.DateTimeFormat;
 
-import uk.nhs.ciao.docs.parser.PropertiesExtractor;
 import uk.nhs.ciao.docs.parser.PropertyNames;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
 import uk.nhs.ciao.logging.CiaoLogger;
 
 import com.google.common.base.Preconditions;

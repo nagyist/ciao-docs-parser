@@ -40,9 +40,9 @@
     		<bean class="uk.nhs.ciao.docs.parser.TikaDocumentParser">
     			<constructor-arg ref="tikaParser" />
     			<constructor-arg>
-    				<bean class="uk.nhs.ciao.docs.parser.MultiPropertiesExtractor">
+    				<bean class="uk.nhs.ciao.docs.parser.extractor.MultiPropertiesExtractor">
     					<constructor-arg>
-		    				<array value-type="uk.nhs.ciao.docs.parser.PropertiesExtractor">
+		    				<array value-type="uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor">
 		    					<ref bean="wordDischargeNotificationExtractor"/>
 		    					<ref bean="dischargeNotificationExtractor"/>
 		    					<ref bean="edDischargeExtractor"/>

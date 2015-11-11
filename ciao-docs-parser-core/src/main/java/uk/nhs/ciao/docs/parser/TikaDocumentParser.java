@@ -18,6 +18,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.xml.SAXContentToDOMHandler;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

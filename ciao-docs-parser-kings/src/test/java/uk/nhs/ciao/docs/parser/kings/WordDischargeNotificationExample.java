@@ -11,9 +11,9 @@ import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import uk.nhs.ciao.docs.parser.PropertiesExtractor;
-import uk.nhs.ciao.docs.parser.SAXContentToDOMHandler;
 import uk.nhs.ciao.docs.parser.TikaParserFactory;
+import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
+import uk.nhs.ciao.docs.parser.xml.SAXContentToDOMHandler;
 
 public class WordDischargeNotificationExample {
 	public static void main(final String[] args) throws Exception {

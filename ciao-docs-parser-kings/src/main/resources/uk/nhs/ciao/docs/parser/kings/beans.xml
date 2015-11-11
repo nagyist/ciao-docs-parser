@@ -12,7 +12,7 @@
 			<bean class="uk.nhs.ciao.docs.parser.TikaParserFactory" factory-method="createParser" />
 		</constructor-arg>
 		<constructor-arg>
-			<bean class="uk.nhs.ciao.docs.parser.MultiPropertiesExtractor">
+			<bean class="uk.nhs.ciao.docs.parser.extractor.MultiPropertiesExtractor">
 				<constructor-arg>
 					<array>
 						<ref bean="WordDischargeNotificationPropertiesExtractor"/>
