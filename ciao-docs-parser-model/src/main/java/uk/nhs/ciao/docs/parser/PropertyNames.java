@@ -48,7 +48,7 @@ public final class PropertyNames {
 			return parent;
 		}
 		
-		return parent.endsWith("]") ? (parent + child) : (parent + "." + child);
+		return child.startsWith("[") ? (parent + child) : (parent + "." + child);
 	}
 	
 	public static Set<String> findAll(final Map<String, Object> map, final boolean includeContainers) {

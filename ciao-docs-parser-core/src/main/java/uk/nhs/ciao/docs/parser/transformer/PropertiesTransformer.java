@@ -118,6 +118,12 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 				DateTimeFormat.forPattern(toFormat).withZoneUTC()));
 	}
 	
+	public void findAndFormatDateProperties(final String fromFormat, final String toFormat) {
+		transformations.add(new FindAndFormatDatePropertiesTransformation(
+				DateTimeFormat.forPattern(fromFormat).withZoneUTC(),
+				DateTimeFormat.forPattern(toFormat).withZoneUTC()));
+	}
+	
 	public PropertiesTransformer nestedTransformer(final String from) {
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.setInPlace(inPlace);
