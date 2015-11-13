@@ -3,7 +3,6 @@ package uk.nhs.ciao.docs.parser;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ public class PropertyPathTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	@Ignore("Requires wildcard parsing into PropertyPath to be merged")
 	public void testDisallowedAnyKey() {
 		PropertyPath.parse("*", false);
 	}
@@ -41,20 +39,53 @@ public class PropertyPathTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
+	public void testDanglingDelimiter() {
+		PropertyPath.parse("name\\", false);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testUnclosedIndex() {
+		PropertyPath.parse("[0", false);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testInvalidIndex() {
+		PropertyPath.parse("[abd]", false);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testUnescapedClosingBracket() {
+		PropertyPath.parse("]", false);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testDanglingKeySeparator() {
+		PropertyPath.parse("names.", false);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
 	public void testDisallowedAnyIndex() {
 		PropertyPath.parse("name[*]", false);
 	}
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void testUnescapedWildcardCharacter() {
+		PropertyPath.parse("na*me", false);
+	}
+	
 	@Test
-	@Ignore("Requires wildcard parsing into PropertyPath to be merged")
+	public void testEscapedWildcardCharacter() {
+		roundtrip("na\\*me", false, "na*me");
+	}
+	
+	@Test
 	public void testAnyKeyWithSpecialCharacters() {
 		roundtrip("na\\[\\]me.*.k\\.ey", true, "na[]me", PropertyPath.ANY_KEY, "k.ey");
 	}
 	
 	@Test
-	@Ignore("Requires wildcard parsing into PropertyPath to be merged")
 	public void testAnyIndexWithSpecialCharacters() {
-		roundtrip("na\\\\me[*].tit\\*le", true, "na\\\\me", PropertyPath.ANY_INDEX, "tit*le");
+		roundtrip("na\\\\me[*].tit\\*le", true, "na\\me", PropertyPath.ANY_INDEX, "tit*le");
 	}
 	
 	@Test

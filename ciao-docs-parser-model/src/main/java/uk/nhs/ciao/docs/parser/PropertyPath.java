@@ -66,56 +66,26 @@ final class PropertyPath {
 	};
 	
 	/**
-	 * Pattern to match a single special character: <code>. [ ] \</code>
+	 * Pattern to match a single special character: <code>. [ ] * \</code>
 	 */
-	private static final Pattern SPECIAL_CHARACTERS_PATTERN = Pattern.compile("([\\.\\[\\]\\\\])");
-	
-	/**
-	 * Pattern for matching path segments (keys, indexes, and wildcards)
-	 */
-	private static final Pattern SEGMENT_PATTERN = Pattern.compile("(.+?)(?:(?:(?:\\[(\\d+|\\*)\\])\\.?)|\\.|\\z)");
-	
-	// TODO: merge wildcard handling into main parse method
-	
-	/**
-	 * Splits the encoded path string into a series of segments
-	 * <p>
-	 * If allowed, wildcards (.*, or [*]) are represented using {@link #ANY_KEY} and {@link #ANY_INDEX}.
-	 */
-	public static Object[] parse(final String path, final boolean allowWildcards) {
-		if (!allowWildcards) {
-			return parse(path);
-		}
-		
-		if (Strings.isNullOrEmpty(path)) {
-			return new Object[0];
-		}
-		
-		final List<Object> segments = Lists.newArrayList();
-		final Matcher matcher = SEGMENT_PATTERN.matcher(path);
-		while (matcher.find()) {
-			if ("*".equals(matcher.group(1))) {
-				segments.add(PropertyPath.ANY_KEY);
-			} else {
-				segments.add(matcher.group(1));
-			}
-			
-			if (matcher.group(2) != null) {
-				if ("*".equals(matcher.group(2))) {
-					segments.add(PropertyPath.ANY_INDEX);
-				} else {
-					segments.add(Integer.valueOf(matcher.group(2)));
-				}
-			}
-		}
-		
-		return segments.toArray();
-	}
+	private static final Pattern SPECIAL_CHARACTERS_PATTERN = Pattern.compile("([\\.\\[\\]\\*\\\\])");
 	
 	/**
 	 * Parses a path into segments
 	 * <p>
 	 * Wildcards are not permitted in paths parsed by this method.
+	 * 
+	 * @param path The path to parse
+	 * @return The parsed path segments
+	 * @see #parse(String, boolean)
+	 */
+	public static Object[] parse(final String path) {
+		final boolean allowWildcards = false;
+		return parse(path, allowWildcards);
+	}
+	
+	/**
+	 * Parses a path into segments
 	 * <p>
 	 * The resulting array contains:
 	 * <ul>
@@ -123,12 +93,15 @@ final class PropertyPath {
 	 * <li>Integer values representing indexed segments
 	 * </ul>
 	 * <p>
+	 * If allowed, wildcards (.*, or [*]) are represented using {@link #ANY_KEY} and {@link #ANY_INDEX}.
+	 * <p>
 	 * An empty array represents the root path
 	 * 
 	 * @param path The path to parse
+	 * @param allowWildcards Whether or not wildcard segments are allowed
 	 * @return The parsed path segments
 	 */
-	public static Object[] parse(final String path) {
+	public static Object[] parse(final String path, final boolean allowWildcards) {
 		if (Strings.isNullOrEmpty(path)) {
 			return new Object[0];
 		}
@@ -192,6 +165,39 @@ final class PropertyPath {
 				}
 				
 				state = ParseState.AFTER_KEY;
+			} else if (c == '*') {
+				if (state == ParseState.INDEX) {
+					if (!allowWildcards || builder.length() > 0) {
+						throw new IllegalArgumentException("Invalid wildcard - pos: " + index);
+					}
+					segments.add(ANY_INDEX);
+										
+					// Look ahead to check closing segment
+					index++;
+					if (path.length() <= index) {
+						continue;
+					} else if (path.charAt(index) != ']') {
+						throw new IllegalArgumentException("Invalid character - expected close index character - pos: " + index);
+					}
+					
+					state = ParseState.AFTER_INDEX;
+				} else if (state == ParseState.ROOT || state == ParseState.AFTER_KEY) {
+					if (!allowWildcards || builder.length() > 0) {
+						throw new IllegalArgumentException("Invalid wildcard - pos: " + index);
+					}
+					segments.add(ANY_KEY);
+					state = ParseState.KEY;
+					
+					// Look ahead to check end of path or delimiter
+					index++;
+					if (path.length() <= index) {
+						continue;
+					} else if (path.charAt(index) != '.' && path.charAt(index) != '[') {
+						throw new IllegalArgumentException("Invalid character - expected delimiter - pos: " + index);
+					}
+				} else {
+					throw new IllegalArgumentException("Invalid wildcard - pos: " + index);
+				}
 			}
 			
 			// digits
@@ -219,8 +225,10 @@ final class PropertyPath {
 		
 		switch (state) {
 		case KEY:
-			segments.add(builder.toString());
-			builder.setLength(0);
+			if (builder.length() > 0) {
+				segments.add(builder.toString());
+				builder.setLength(0);
+			}
 			break;
 		case ROOT:
 		case AFTER_INDEX:
