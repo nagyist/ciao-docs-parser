@@ -2,11 +2,13 @@ package uk.nhs.ciao.docs.parser;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import uk.nhs.ciao.util.SimpleEntry;
+
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -284,13 +286,27 @@ final class PropertyPath {
 		return false;
 	}
 	
-	public static Object get(final Object source, final Object[] segments) {
-		return get(source, segments, 0);
+	public static <T> T getValue(final Class<T> type, final Object source, final Object[] segments) {
+		return get(type, source, segments, 0, null);
+	}
+		
+	public static <T> Entry<Object[], T> getEntry(final Class<T> type, final Object source, final Object[] segments) {
+		final Object[] resultSegments;
+		final T value;
+		if (containsWildcard(segments)) {
+			resultSegments = new Object[segments.length];
+			value = get(type, source, segments, 0, resultSegments);
+		} else {
+			resultSegments = segments;
+			value = get(type, source, segments, 0, null);
+		}
+		
+		return value == null ? null : SimpleEntry.valueOf(resultSegments, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<Object> getList(final Object source, final Object[] segments) {
-		final Object value = get(source, segments);
+	public static List<Object> getValueAsList(final Object source, final Object[] segments) {
+		final Object value = getValue(List.class, source, segments);
 		if (value instanceof List) {
 			return (List<Object>)value;
 		}
@@ -298,37 +314,61 @@ final class PropertyPath {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> getMap(final Object source, final Object[] segments) {
-		final Object value = get(source, segments);
+	public static Map<String, Object> getValueAsMap(final Object source, final Object[] segments) {
+		final Object value = getValue(Map.class, source, segments);
 		if (value instanceof Map) {
 			return (Map<String, Object>)value;
 		}
 		return null;
 	}
 	
-	private static Object get(final Object source, final Object[] segments, final int start) {
+	private static <T> T get(final Class<T> type, final Object source, final Object[] segments, final int start, final Object[] resultSegments) {
 		if (source == null || start == segments.length) {
-			return source;
+			return type.isInstance(source) ? type.cast(source) : null;
 		}
 		
-		Object value = null;
+		T result = null;
 		final Object segment = segments[start];
-		if (segment == ANY_INDEX || segment instanceof Integer) {
+		Object resultSegment = segment;
+		if (segment == ANY_INDEX) {
 			if (source instanceof List) {
 				final List<?> list = (List<?>)source;
-				final int index = segment == ANY_INDEX ? 0 : (Integer)segment;
-				value = index < list.size() ? list.get(index) : null;
+				int index = 0;
+				for (final Object value: list) {
+					result = get(type, value, segments, start + 1, resultSegments);
+					if (result != null) {
+						resultSegment = index;
+						break;
+					}
+				}
+			}
+		} else if (segment instanceof Integer) {
+			if (source instanceof List) {
+				final List<?> list = (List<?>)source;
+				final int index = (Integer)segment;
+				final Object value = index < list.size() ? list.get(index) : null;
+				result = get(type, value, segments, start + 1, resultSegments);
 			}
 		} else if (source instanceof Map) {
 			final Map<?, ?> map = (Map<?, ?>)source;
 			if (segment == ANY_KEY) {
-				value = Iterables.getFirst(map.values(), null);
+				for (final Entry<?, ?> entry: map.entrySet()) {
+					result = get(type, entry.getValue(), segments, start + 1, resultSegments);
+					if (result != null) {
+						resultSegment = entry.getKey();
+						break;
+					}
+				}
 			} else {
-				value = map.get(segment);
+				result = get(type, map.get(segment), segments, start + 1, resultSegments);
 			}
 		}
 		
-		return value == null ? null : get(value, segments, start + 1);
+		if (result != null && resultSegments != null) {
+			resultSegments[start] = resultSegment;
+		}
+		
+		return result;
 	}
 	
 	/**

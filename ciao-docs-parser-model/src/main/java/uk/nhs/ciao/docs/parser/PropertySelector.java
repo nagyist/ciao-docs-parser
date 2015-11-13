@@ -10,7 +10,6 @@ import uk.nhs.ciao.util.SimpleEntry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 
@@ -137,8 +136,8 @@ public final class PropertySelector {
 			return type.isInstance(properties) ? SimpleEntry.valueOf("", type.cast(properties)) : null;
 		}
 		
-		final Map<String, T> results = selectAll(type, properties);
-		return Iterables.getFirst(results.entrySet(), null);
+		final Entry<Object[], T> entry = PropertyPath.getEntry(type, properties, segments);
+		return entry == null ? null : SimpleEntry.valueOf(PropertyPath.toString(entry.getKey()), entry.getValue());
 	}
 	
 	/**
@@ -148,8 +147,7 @@ public final class PropertySelector {
 	 * 		the wrong type are ignored
 	 */
 	public <T> T selectValue(final Class<T> type, final Map<String, Object> properties) {
-		final Entry<String, T> entry = select(type, properties);
-		return entry == null ? null : entry.getValue();
+		return PropertyPath.getValue(type, properties, segments);
 	}
 	
 	/**
@@ -230,6 +228,8 @@ public final class PropertySelector {
 	public String toString() {
 		return Arrays.toString(segments);
 	}
+	
+	// TODO: Merge into PropertyPath
 
 	/**
 	 * Recursively finds selected key/value pairs and adds them to the results map

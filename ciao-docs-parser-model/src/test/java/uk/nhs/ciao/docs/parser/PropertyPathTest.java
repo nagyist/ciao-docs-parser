@@ -134,7 +134,7 @@ public class PropertyPathTest {
 	private void assertGet(final Map<String, Object> source, final Object[] segments, final Object expected) {
 		LOGGER.info("Testing get() for segments: " + Arrays.toString(segments));
 		
-		final Object actual = PropertyPath.get(source, segments);
+		final Object actual = PropertyPath.getValue(Object.class, source, segments);
 		Assert.assertEquals("segments: " + Arrays.toString(segments), expected, actual);
 	}
 	
