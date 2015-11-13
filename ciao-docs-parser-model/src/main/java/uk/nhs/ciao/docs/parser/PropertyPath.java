@@ -10,7 +10,6 @@ import uk.nhs.ciao.util.SimpleEntry;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * Utility methods for handling property paths and segments
@@ -372,8 +371,8 @@ final class PropertyPath {
 		return result;
 	}
 	
-	public static <T> Map<Object[], T> findAll(final Class<T> type, Object source, final Object[] segments) {
-		final Map<Object[], T> results = Maps.newLinkedHashMap();
+	public static <T> List<Entry<Object[], T>> findAll(final Class<T> type, Object source, final Object[] segments) {
+		final List<Entry<Object[], T>> results = Lists.newArrayList();
 		findAndAddSelected(type, results, Lists.newArrayList(), source, segments, 0);
 		return results;
 	}
@@ -386,19 +385,19 @@ final class PropertyPath {
 	 * of the incoming data)
 	 * 
 	 * @param type The type of object to match
-	 * @param results The results map matching pairs are added to
+	 * @param results The results list that matching pairs are added to
 	 * @param prefix The key/path prefix - for the root this is the empty string
 	 * @param value The current value being matches - either a container (map/list) or leaf value
 	 * @param index The segment index being matched
 	 */
-	private static <T> void findAndAddSelected(final Class<T> type, final Map<Object[], T> results,
+	private static <T> void findAndAddSelected(final Class<T> type, final List<Entry<Object[], T>> results,
 			final List<Object> prefix, final Object value, final Object[] segments, final int index) {
 		if (value == null) {
 			return;
 		} else if (index >= segments.length) {
 			// Found a potential match
 			if (type.isInstance(value)) {
-				results.put(prefix.toArray(), type.cast(value));
+				results.add(SimpleEntry.valueOf(prefix.toArray(), type.cast(value)));
 			}
 			return;
 		}

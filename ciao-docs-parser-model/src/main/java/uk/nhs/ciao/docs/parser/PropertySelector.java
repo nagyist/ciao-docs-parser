@@ -1,7 +1,7 @@
 package uk.nhs.ciao.docs.parser;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,6 +9,7 @@ import uk.nhs.ciao.util.SimpleEntry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 
@@ -155,8 +156,8 @@ public final class PropertySelector {
 	/**
 	 * Selects all matching property values from the dynamic map
 	 */
-	public Collection<Object> selectAllValues(final Map<String, Object> properties) {
-		return selectAll(properties).values();
+	public List<Object> selectAllValues(final Map<String, Object> properties) {
+		return selectAllValues(Object.class, properties);
 	}
 	
 	/**
@@ -170,7 +171,7 @@ public final class PropertySelector {
 	public <T> Map<String, T> selectAll(final Class<T> type, final Map<String, Object> properties) {
 		final Map<String, T> results = Maps.newLinkedHashMap();
 		
-		for (final Entry<Object[], T> entry: PropertyPath.findAll(type, properties, segments).entrySet()) {
+		for (final Entry<Object[], T> entry: PropertyPath.findAll(type, properties, segments)) {
 			results.put(PropertyPath.toString(entry.getKey()), entry.getValue());
 		}
 		
@@ -183,8 +184,14 @@ public final class PropertySelector {
 	 * @param type The type of objects matched - any objects matching the path selector but of 
 	 * 		the wrong type are ignored
 	 */
-	public <T> Collection<T> selectAllValues(final Class<T> type, final Map<String, Object> properties) {
-		return PropertyPath.findAll(type, properties, segments).values();
+	public <T> List<T> selectAllValues(final Class<T> type, final Map<String, Object> properties) {
+		final List<T> results = Lists.newArrayList();
+		
+		for (final Entry<Object[], T> entry: PropertyPath.findAll(type, properties, segments)) {
+			results.add(entry.getValue());
+		}
+		
+		return results;
 	}
 	
 	@Override
