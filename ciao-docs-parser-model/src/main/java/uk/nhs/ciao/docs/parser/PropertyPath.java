@@ -10,6 +10,7 @@ import uk.nhs.ciao.util.SimpleEntry;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Utility methods for handling property paths and segments
@@ -369,6 +370,93 @@ final class PropertyPath {
 		}
 		
 		return result;
+	}
+	
+	public static <T> Map<Object[], T> findAll(final Class<T> type, Object source, final Object[] segments) {
+		final Map<Object[], T> results = Maps.newLinkedHashMap();
+		findAndAddSelected(type, results, Lists.newArrayList(), source, segments, 0);
+		return results;
+	}
+	
+	/**
+	 * Recursively finds selected key/value pairs and adds them to the results map
+	 * <p>
+	 * The results map is 'partially flattened' - i.e. the key values are encoded paths,
+	 * however selected values may have nested maps/lists (determined by the structure
+	 * of the incoming data)
+	 * 
+	 * @param type The type of object to match
+	 * @param results The results map matching pairs are added to
+	 * @param prefix The key/path prefix - for the root this is the empty string
+	 * @param value The current value being matches - either a container (map/list) or leaf value
+	 * @param index The segment index being matched
+	 */
+	private static <T> void findAndAddSelected(final Class<T> type, final Map<Object[], T> results,
+			final List<Object> prefix, final Object value, final Object[] segments, final int index) {
+		if (value == null) {
+			return;
+		} else if (index >= segments.length) {
+			// Found a potential match
+			if (type.isInstance(value)) {
+				results.put(prefix.toArray(), type.cast(value));
+			}
+			return;
+		}
+		
+		final Object segment = segments[index];
+		final int prefixLength = prefix.size();
+		if (segment == PropertyPath.ANY_KEY) {
+			// Loop all elements in map
+			if (value instanceof Map) {
+				@SuppressWarnings("unchecked")
+				final Map<String, Object> map = (Map<String, Object>)value;
+				for (final Entry<String, Object> entry: map.entrySet()) {
+					prefix.add(entry.getKey());
+					findAndAddSelected(type, results, prefix, entry.getValue(), segments, index + 1);
+					while (prefix.size() > prefixLength) {
+						prefix.remove(prefixLength);
+					}
+				}
+			}
+		} else if (segment == PropertyPath.ANY_INDEX) {
+			// Loop all elements in list
+			if (value instanceof List) {
+				int listIndex = 0;
+				for (final Object next:(List<?>)value) {
+					prefix.add(listIndex);
+					findAndAddSelected(type, results, prefix, next, segments, index + 1);
+					while (prefix.size() > prefixLength) {
+						prefix.remove(prefixLength);
+					}
+					listIndex++;
+				}
+			}
+		} else if (segment instanceof Integer) {
+			// Match index in list
+			final int targetIndex = (Integer)segment;
+			if (value instanceof List && targetIndex < ((List<?>)value).size()) {
+				final Object next = ((List<?>)value).get(targetIndex);
+				prefix.add(targetIndex);
+				findAndAddSelected(type, results, prefix, next, segments, index + 1);
+				while (prefix.size() > prefixLength) {
+					prefix.remove(prefixLength);
+				}
+			}
+		} else { // String
+			// Match named key in map
+			final String targetKey = (String)segment;
+			if (value instanceof Map) {
+				@SuppressWarnings("unchecked")
+				final Map<String, Object> map = (Map<String, Object>)value;
+				final Object next = map.get(targetKey);
+				
+				prefix.add(targetKey);
+				findAndAddSelected(type, results, prefix, next, segments, index + 1);
+				while (prefix.size() > prefixLength) {
+					prefix.remove(prefixLength);
+				}
+			}
+		}
 	}
 	
 	/**

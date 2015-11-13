@@ -2,7 +2,6 @@ package uk.nhs.ciao.docs.parser;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -130,12 +129,6 @@ public final class PropertySelector {
 	 * 		the wrong type are ignored
 	 */
 	public <T> Entry<String, T> select(final Class<T> type, final Map<String, Object> properties) {
-		if (properties == null) {
-			return null;
-		} else if (isRoot()) {
-			return type.isInstance(properties) ? SimpleEntry.valueOf("", type.cast(properties)) : null;
-		}
-		
 		final Entry<Object[], T> entry = PropertyPath.getEntry(type, properties, segments);
 		return entry == null ? null : SimpleEntry.valueOf(PropertyPath.toString(entry.getKey()), entry.getValue());
 	}
@@ -175,18 +168,10 @@ public final class PropertySelector {
 	 * 		the wrong type are ignored
 	 */
 	public <T> Map<String, T> selectAll(final Class<T> type, final Map<String, Object> properties) {
-		if (properties == null) {
-			return Maps.<String, T>newHashMap();
-		}
-		
 		final Map<String, T> results = Maps.newLinkedHashMap();
-		if (isRoot()) {
-			if (type.isInstance(properties)) {
-				results.put("", type.cast(properties));
-			}
-		} else {
-			final StringBuilder prefix = new StringBuilder();
-			findAndAddSelected(type, results, prefix, properties, 0);
+		
+		for (final Entry<Object[], T> entry: PropertyPath.findAll(type, properties, segments).entrySet()) {
+			results.put(PropertyPath.toString(entry.getKey()), entry.getValue());
 		}
 		
 		return results;
@@ -199,7 +184,7 @@ public final class PropertySelector {
 	 * 		the wrong type are ignored
 	 */
 	public <T> Collection<T> selectAllValues(final Class<T> type, final Map<String, Object> properties) {
-		return selectAll(type, properties).values();
+		return PropertyPath.findAll(type, properties, segments).values();
 	}
 	
 	@Override
@@ -227,86 +212,5 @@ public final class PropertySelector {
 	@Override
 	public String toString() {
 		return Arrays.toString(segments);
-	}
-	
-	// TODO: Merge into PropertyPath
-
-	/**
-	 * Recursively finds selected key/value pairs and adds them to the results map
-	 * <p>
-	 * The results map is 'partially flattened' - i.e. the key values are encoded paths,
-	 * however selected values may have nested maps/lists (determined by the structure
-	 * of the incoming data)
-	 * 
-	 * @param type The type of object to match
-	 * @param results The results map matching pairs are added to
-	 * @param prefix The key/path prefix - for the root this is the empty string
-	 * @param value The current value being matches - either a container (map/list) or leaf value
-	 * @param index The segment index being matched
-	 */
-	private <T> void findAndAddSelected(final Class<T> type, final Map<String, T> results,
-			final StringBuilder prefix, final Object value, final int index) {
-		if (value == null) {
-			return;
-		} else if (index >= segments.length) {
-			// Found a potential match
-			if (type.isInstance(value)) {
-				results.put(prefix.toString(), type.cast(value));
-			}
-			return;
-		}
-		
-		final Object segment = segments[index];
-		final int prefixLength = prefix.length();
-		if (segment == PropertyPath.ANY_KEY) {
-			// Loop all elements in map
-			if (value instanceof Map) {
-				@SuppressWarnings("unchecked")
-				final Map<String, Object> map = (Map<String, Object>)value;
-				for (final Entry<String, Object> entry: map.entrySet()) {
-					if (prefixLength > 0) {
-						prefix.append('.');
-					}
-					prefix.append(entry.getKey());
-					findAndAddSelected(type, results, prefix, entry.getValue(), index + 1);
-					prefix.setLength(prefixLength);
-				}
-			}
-		} else if (segment == PropertyPath.ANY_INDEX) {
-			// Loop all elements in list
-			if (value instanceof List) {
-				int listIndex = 0;
-				for (final Object next:(List<?>)value) {
-					prefix.append('[').append(listIndex).append(']');
-					findAndAddSelected(type, results, prefix, next, index + 1);
-					prefix.setLength(prefixLength);
-					listIndex++;
-				}
-			}
-		} else if (segment instanceof Integer) {
-			// Match index in list
-			final int targetIndex = (Integer)segment;
-			if (value instanceof List && targetIndex < ((List<?>)value).size()) {
-				final Object next = ((List<?>)value).get(targetIndex);
-				prefix.append('[').append(targetIndex).append(']');
-				findAndAddSelected(type, results, prefix, next, index + 1);
-				prefix.setLength(prefixLength);
-			}
-		} else { // String
-			// Match named key in map
-			final String targetKey = (String)segment;
-			if (value instanceof Map) {
-				@SuppressWarnings("unchecked")
-				final Map<String, Object> map = (Map<String, Object>)value;
-				final Object next = map.get(targetKey);
-				
-				if (prefixLength > 0) {
-					prefix.append('.');
-				}
-				prefix.append(targetKey);
-				findAndAddSelected(type, results, prefix, next, index + 1);
-				prefix.setLength(prefixLength);
-			}
-		}
 	}
 }
