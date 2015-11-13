@@ -35,27 +35,7 @@ import com.google.common.collect.Maps;
  * <li><code>authors[*].*</code>
  * </ul>
  */
-public final class PropertySelector {
-	/**
-	 * Special-case segment for matching any key in a dynamic map
-	 */
-	private static final Object ANY_KEY = new Object() {
-		@Override
-		public String toString() {
-			return "*";
-		}
-	};
-	
-	/**
-	 * Special-case segment for matching any index in an array
-	 */
-	private static final Object ANY_INDEX = new Object() {
-		@Override
-		public String toString() {
-			return "[*]";
-		}
-	};
-	
+public final class PropertySelector {	
 	/**
 	 * Pattern for matching path segments (keys, indexes, and wildcards)
 	 */
@@ -106,7 +86,7 @@ public final class PropertySelector {
 			if (segment instanceof Integer) {
 				builder.append('[').append(segment).append(']');
 			} else {
-				if (segment != ANY_INDEX && builder.length() > 0) {
+				if (segment != PropertyPath.ANY_INDEX && builder.length() > 0) {
 					builder.append('.');
 				}
 				builder.append(segment);
@@ -283,7 +263,7 @@ public final class PropertySelector {
 		
 		final Object segment = segments.get(index);
 		final int prefixLength = prefix.length();
-		if (segment == ANY_KEY) {
+		if (segment == PropertyPath.ANY_KEY) {
 			// Loop all elements in map
 			if (value instanceof Map) {
 				@SuppressWarnings("unchecked")
@@ -297,7 +277,7 @@ public final class PropertySelector {
 					prefix.setLength(prefixLength);
 				}
 			}
-		} else if (segment == ANY_INDEX) {
+		} else if (segment == PropertyPath.ANY_INDEX) {
 			// Loop all elements in list
 			if (value instanceof List) {
 				int listIndex = 0;
@@ -340,7 +320,7 @@ public final class PropertySelector {
 	 */
 	private static boolean containsWildcard(final List<Object> segments) {
 		for (final Object segment: segments) {
-			if (ANY_KEY == segment || ANY_INDEX == segment) {
+			if (PropertyPath.ANY_KEY == segment || PropertyPath.ANY_INDEX == segment) {
 				return true;
 			}
 		}
@@ -361,14 +341,14 @@ public final class PropertySelector {
 		final Matcher matcher = SEGMENT_PATTERN.matcher(path);
 		while (matcher.find()) {
 			if ("*".equals(matcher.group(1))) {
-				segments.add(ANY_KEY);
+				segments.add(PropertyPath.ANY_KEY);
 			} else {
 				segments.add(matcher.group(1));
 			}
 			
 			if (matcher.group(2) != null) {
 				if ("*".equals(matcher.group(2))) {
-					segments.add(ANY_INDEX);
+					segments.add(PropertyPath.ANY_INDEX);
 				} else {
 					segments.add(Integer.valueOf(matcher.group(2)));
 				}
