@@ -1,11 +1,17 @@
 package uk.nhs.ciao.docs.parser;
 
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Closeables;
 
 /**
  * Unit tests for {@link PropertyPath}
@@ -98,6 +104,38 @@ public class PropertyPathTest {
 		Assert.assertTrue(PropertyPath.containsWildcard(PropertyPath.parse("value.*.key", true)));
 		Assert.assertTrue(PropertyPath.containsWildcard(PropertyPath.parse("values[*].key", true)));
 		Assert.assertFalse(PropertyPath.containsWildcard(PropertyPath.parse("values[0].key", true)));
+	}
+	
+	@Test
+	public void testGetValue() throws Exception {
+		final InputStream resource = getClass().getResourceAsStream("property-selector-fixture.json");
+		try {
+			final Map<String, Object> source = new ObjectMapper().readValue(resource, new TypeReference<Map<String, Object>>(){});
+			
+			assertGet(source, "name", "Mr Example");
+			assertGet(source, "age", 28);
+			assertGet(source, "addresses[*].city", "London");
+			assertGet(source, "addresses[1].*", "27 Somewhere Else");
+			assertGet(source, "addresses[2].*", null);
+			assertGet(source, "addresses[1].city[1]", null);
+			assertGet(source, "addresses.city", null);
+			assertGet(source, "[2]", null);
+			assertGet(source, "", source);
+			assertGet(source, "key\\.with\\[\\]\\.special\\.chars", "special-value");
+		} finally {
+			Closeables.closeQuietly(resource);
+		}
+	}
+	
+	private void assertGet(final Map<String, Object> source, final String path, final Object expected) {
+		assertGet(source, PropertyPath.parse(path, true), expected);
+	}
+	
+	private void assertGet(final Map<String, Object> source, final Object[] segments, final Object expected) {
+		LOGGER.info("Testing get() for segments: " + Arrays.toString(segments));
+		
+		final Object actual = PropertyPath.get(source, segments);
+		Assert.assertEquals("segments: " + Arrays.toString(segments), expected, actual);
 	}
 	
 	private void roundtrip(final String path, final boolean allowWildcards, final Object... expectedSegments) {

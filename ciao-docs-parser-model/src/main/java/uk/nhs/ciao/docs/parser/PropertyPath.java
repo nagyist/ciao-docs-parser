@@ -1,10 +1,12 @@
 package uk.nhs.ciao.docs.parser;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -280,6 +282,53 @@ final class PropertyPath {
 			}
 		}
 		return false;
+	}
+	
+	public static Object get(final Object source, final Object[] segments) {
+		return get(source, segments, 0);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<Object> getList(final Object source, final Object[] segments) {
+		final Object value = get(source, segments);
+		if (value instanceof List) {
+			return (List<Object>)value;
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> getMap(final Object source, final Object[] segments) {
+		final Object value = get(source, segments);
+		if (value instanceof Map) {
+			return (Map<String, Object>)value;
+		}
+		return null;
+	}
+	
+	private static Object get(final Object source, final Object[] segments, final int start) {
+		if (source == null || start == segments.length) {
+			return source;
+		}
+		
+		Object value = null;
+		final Object segment = segments[start];
+		if (segment == ANY_INDEX || segment instanceof Integer) {
+			if (source instanceof List) {
+				final List<?> list = (List<?>)source;
+				final int index = segment == ANY_INDEX ? 0 : (Integer)segment;
+				value = index < list.size() ? list.get(index) : null;
+			}
+		} else if (source instanceof Map) {
+			final Map<?, ?> map = (Map<?, ?>)source;
+			if (segment == ANY_KEY) {
+				value = Iterables.getFirst(map.values(), null);
+			} else {
+				value = map.get(segment);
+			}
+		}
+		
+		return value == null ? null : get(value, segments, start + 1);
 	}
 	
 	/**

@@ -12,5 +12,6 @@
 			"city": "Oxford",
 			"postcode": "CD34 5EF"
 		}
-	]
+	],
+	"key.with[].special.chars": "special-value"
 }
