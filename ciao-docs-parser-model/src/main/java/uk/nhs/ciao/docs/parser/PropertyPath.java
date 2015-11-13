@@ -8,7 +8,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 /**
- * Utility methods for handling property paths and segements
+ * Utility methods for handling property paths and segments
  */
 final class PropertyPath {
 	private PropertyPath() {
@@ -71,7 +71,51 @@ final class PropertyPath {
 	private static final Pattern SPECIAL_CHARACTERS_PATTERN = Pattern.compile("([\\.\\[\\]\\\\])");
 	
 	/**
+	 * Pattern for matching path segments (keys, indexes, and wildcards)
+	 */
+	private static final Pattern SEGMENT_PATTERN = Pattern.compile("(.+?)(?:(?:(?:\\[(\\d+|\\*)\\])\\.?)|\\.|\\z)");
+	
+	// TODO: merge wildcard handling into main parse method
+	
+	/**
+	 * Splits the encoded path string into a series of segments
+	 * <p>
+	 * If allowed, wildcards (.*, or [*]) are represented using {@link #ANY_KEY} and {@link #ANY_INDEX}.
+	 */
+	public static Object[] parse(final String path, final boolean allowWildcards) {
+		if (!allowWildcards) {
+			return parse(path);
+		}
+		
+		if (Strings.isNullOrEmpty(path)) {
+			return new Object[0];
+		}
+		
+		final List<Object> segments = Lists.newArrayList();
+		final Matcher matcher = SEGMENT_PATTERN.matcher(path);
+		while (matcher.find()) {
+			if ("*".equals(matcher.group(1))) {
+				segments.add(PropertyPath.ANY_KEY);
+			} else {
+				segments.add(matcher.group(1));
+			}
+			
+			if (matcher.group(2) != null) {
+				if ("*".equals(matcher.group(2))) {
+					segments.add(PropertyPath.ANY_INDEX);
+				} else {
+					segments.add(Integer.valueOf(matcher.group(2)));
+				}
+			}
+		}
+		
+		return segments.toArray();
+	}
+	
+	/**
 	 * Parses a path into segments
+	 * <p>
+	 * Wildcards are not permitted in paths parsed by this method.
 	 * <p>
 	 * The resulting array contains:
 	 * <ul>
@@ -200,15 +244,34 @@ final class PropertyPath {
 		for (final Object segment: segments) {
 			if (segment instanceof Integer) {
 				builder.append('[').append(segment).append(']');
+			} else if (segment == ANY_INDEX) {
+				builder.append(segment);
 			} else {
 				if (builder.length() > 0) {
 					builder.append('.');
 				}
-				builder.append(encodeSegment(segment.toString()));
+				
+				if (segment == ANY_KEY) {
+					builder.append(segment);
+				} else {
+					builder.append(encodeSegment(segment.toString()));
+				}
 			}
 		}
 		
 		return builder.toString();
+	}
+	
+	/**
+	 * Tests if the specified segments contains a wildcard (ANY_KEY or ANY_INDEX)
+	 */
+	public static boolean containsWildcard(final Object[] segments) {
+		for (final Object segment: segments) {
+			if (ANY_KEY == segment || ANY_INDEX == segment) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

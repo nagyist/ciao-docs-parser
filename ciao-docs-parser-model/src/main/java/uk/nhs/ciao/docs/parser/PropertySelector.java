@@ -1,19 +1,18 @@
 package uk.nhs.ciao.docs.parser;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import uk.nhs.ciao.util.SimpleEntry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.ObjectArrays;
 
 /**
  * Selects a property (or properties) from a dynamic map structure.
@@ -35,37 +34,34 @@ import com.google.common.collect.Maps;
  * <li><code>authors[*].*</code>
  * </ul>
  */
-public final class PropertySelector {	
-	/**
-	 * Pattern for matching path segments (keys, indexes, and wildcards)
-	 */
-	private static final Pattern SEGMENT_PATTERN = Pattern.compile("(.+?)(?:(?:(?:\\[(\\d+|\\*)\\])\\.?)|\\.|\\z)");
-	
+public final class PropertySelector {		
 	/**
 	 * Selects the root of a properties map
 	 */
-	private static final PropertySelector ROOT = new PropertySelector(Lists.newArrayList());
+	private static final PropertySelector ROOT = new PropertySelector(new Object[0]);
 	
-	private final List<Object> segments;
+	private final Object[] segments;
 	private final boolean multi;
+	private int hash;
 	
 	/**
 	 * Returns a selector matching the specified path
 	 */
 	public static PropertySelector valueOf(final String path) {
-		return Strings.isNullOrEmpty(path) ? ROOT : new PropertySelector(getSegmentsFromPath(path));
+		final boolean allowWildcards = true;
+		return Strings.isNullOrEmpty(path) ? ROOT : new PropertySelector(PropertyPath.parse(path, allowWildcards));
 	}
 	
-	private PropertySelector(final List<Object> segments) {
+	PropertySelector(final Object[] segments) {
 		this.segments = segments;
-		this.multi = containsWildcard(segments);
+		this.multi = PropertyPath.containsWildcard(segments);
 	}
 	
 	/**
 	 * Tests if this is the root selector
 	 */
 	public boolean isRoot() {
-		return segments.isEmpty();
+		return segments.length == 0;
 	}
 	
 	/**
@@ -77,30 +73,25 @@ public final class PropertySelector {
 	}
 	
 	/**
+	 * Returns the PropertyName equivalent to this selector if a single name is identified or
+	 * <code>null</code> if the path contains wildcards
+	 */
+	public PropertyName toPropertyName() {
+		return multi ? null : new PropertyName(Arrays.copyOf(segments, segments.length));
+	}
+	
+	/**
 	 * Returns the string path associated with this selector
 	 */
 	public String getPath() {
-		final StringBuilder builder = new StringBuilder();
-		
-		for (final Object segment: segments) {
-			if (segment instanceof Integer) {
-				builder.append('[').append(segment).append(']');
-			} else {
-				if (segment != PropertyPath.ANY_INDEX && builder.length() > 0) {
-					builder.append('.');
-				}
-				builder.append(segment);
-			}
-		}
-		
-		return builder.toString();
+		return PropertyPath.toString(segments);
 	}
 	
 	/**
 	 * Returns the parent of this selector if it is not a root
 	 */
 	public PropertySelector getParent() {
-		return isRoot() ? null : new PropertySelector(Lists.newArrayList(segments.subList(0, segments.size() - 1)));
+		return isRoot() ? null : new PropertySelector(Arrays.copyOf(segments, segments.length - 1));
 	}
 	
 	/**
@@ -108,12 +99,11 @@ public final class PropertySelector {
 	 * appended path segments
 	 */
 	public PropertySelector getChild(final String childPath) {
-		final List<Object> childSegments = getSegmentsFromPath(childPath);
-		Preconditions.checkArgument(!childSegments.isEmpty(), "childPath must be provided");
+		final boolean allowWildcards = true;
+		final Object[] childSegments = PropertyPath.parse(childPath, allowWildcards);
+		Preconditions.checkArgument(childSegments.length > 0, "childPath must be provided");
 		
-		final List<Object> joinedSegments = Lists.newArrayList(segments);
-		joinedSegments.addAll(childSegments);
-		return new PropertySelector(joinedSegments);
+		return new PropertySelector(ObjectArrays.concat(segments, childSegments, Object.class));
 	}
 	
 	/**
@@ -216,7 +206,12 @@ public final class PropertySelector {
 	
 	@Override
 	public int hashCode() {
-		return segments.hashCode();
+		int result = hash;
+		if (result == 0) {
+			result = Arrays.hashCode(segments);
+			hash = result; // safe to publish without volatile
+		}
+		return result;
 	}
 
 	@Override
@@ -228,12 +223,12 @@ public final class PropertySelector {
 		}
 		
 		final PropertySelector other = (PropertySelector) obj;
-		return segments.equals(other.segments);
+		return Arrays.equals(segments, other.segments);
 	}
 	
 	@Override
 	public String toString() {
-		return segments.toString();
+		return Arrays.toString(segments);
 	}
 
 	/**
@@ -253,7 +248,7 @@ public final class PropertySelector {
 			final StringBuilder prefix, final Object value, final int index) {
 		if (value == null) {
 			return;
-		} else if (index >= segments.size()) {
+		} else if (index >= segments.length) {
 			// Found a potential match
 			if (type.isInstance(value)) {
 				results.put(prefix.toString(), type.cast(value));
@@ -261,7 +256,7 @@ public final class PropertySelector {
 			return;
 		}
 		
-		final Object segment = segments.get(index);
+		final Object segment = segments[index];
 		final int prefixLength = prefix.length();
 		if (segment == PropertyPath.ANY_KEY) {
 			// Loop all elements in map
@@ -313,48 +308,5 @@ public final class PropertySelector {
 				prefix.setLength(prefixLength);
 			}
 		}
-	}
-	
-	/**
-	 * Tests if the specified segments contains a wildcard (ANY_KEY or ANY_INDEX)
-	 */
-	private static boolean containsWildcard(final List<Object> segments) {
-		for (final Object segment: segments) {
-			if (PropertyPath.ANY_KEY == segment || PropertyPath.ANY_INDEX == segment) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Splits the encoded path string into a series of segments
-	 * <p>
-	 * Wildcards (.*, or [*]) are represented using {@link #ANY_KEY} and {@link #ANY_INDEX}.
-	 */
-	private static List<Object> getSegmentsFromPath(final String path) {
-		if (Strings.isNullOrEmpty(path)) {
-			return Lists.newArrayList();
-		}
-		
-		final List<Object> segments = Lists.newArrayList();
-		final Matcher matcher = SEGMENT_PATTERN.matcher(path);
-		while (matcher.find()) {
-			if ("*".equals(matcher.group(1))) {
-				segments.add(PropertyPath.ANY_KEY);
-			} else {
-				segments.add(matcher.group(1));
-			}
-			
-			if (matcher.group(2) != null) {
-				if ("*".equals(matcher.group(2))) {
-					segments.add(PropertyPath.ANY_INDEX);
-				} else {
-					segments.add(Integer.valueOf(matcher.group(2)));
-				}
-			}
-		}
-		
-		return segments;
 	}
 }

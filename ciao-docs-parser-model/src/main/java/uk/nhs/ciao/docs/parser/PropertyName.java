@@ -12,7 +12,7 @@ public final class PropertyName {
 		return new PropertyName(PropertyPath.parse(path));
 	}
 	
-	private PropertyName(final Object[] segments) {
+	PropertyName(final Object[] segments) {
 		this(segments, null);
 	}
 	
@@ -33,12 +33,27 @@ public final class PropertyName {
 		return lastSegment() instanceof String;
 	}
 	
+	public String getName() {
+		return isNamed() ? (String)lastSegment() : null;
+	}
+	
+	public int getIndex() {
+		return isIndexed() ? (Integer)lastSegment() : -1;
+	}
+	
 	public String getPath() {
 		if (path == null) {
 			path = PropertyPath.toString(segments);
 		}
 		
 		return path;
+	}
+	
+	/**
+	 * Returns the PropertySelector equivalent to this name
+	 */
+	public PropertySelector toPropertySelector() {
+		return new PropertySelector(Arrays.copyOf(segments, segments.length));
 	}
 	
 	public List<PropertyName> getChildren(final Object source) {
@@ -49,8 +64,8 @@ public final class PropertyName {
 	public int hashCode() {
 		int result = hash;
 		if (result == 0) {
-			// safe to publish without volatile
-			hash = Arrays.hashCode(segments);
+			result = Arrays.hashCode(segments);
+			hash = result; // safe to publish without volatile
 		}
 		return result;
 	}
