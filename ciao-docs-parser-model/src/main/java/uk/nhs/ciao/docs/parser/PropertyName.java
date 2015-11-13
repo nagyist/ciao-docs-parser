@@ -2,6 +2,10 @@ package uk.nhs.ciao.docs.parser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 public final class PropertyName {
 	private final Object[] segments;
@@ -56,8 +60,46 @@ public final class PropertyName {
 		return new PropertySelector(Arrays.copyOf(segments, segments.length));
 	}
 	
-	public List<PropertyName> getChildren(final Object source) {
-		throw new UnsupportedOperationException();
+	public PropertyName getChild(final String name) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkArgument(!name.isEmpty());
+		
+		final Object[] childSegments = Arrays.copyOf(segments, segments.length + 1);
+		childSegments[segments.length] = name;
+		return new PropertyName(segments);
+	}
+	
+	public PropertyName getChild(final int index) {
+		Preconditions.checkArgument(index >= 0);
+		
+		final Object[] childSegments = Arrays.copyOf(segments, segments.length + 1);
+		childSegments[segments.length] = index;
+		return new PropertyName(segments);
+	}
+	
+	public PropertyName getParent() {
+		return isRoot() ? null : new PropertyName(Arrays.copyOf(segments, segments.length - 1));
+	}
+	
+	public List<PropertyName> listChildren(final Object source) {
+		final List<PropertyName> children = Lists.newArrayList();
+
+		final Object value = PropertyPath.getValue(Object.class, source, segments);
+		if (value instanceof List) {
+			final List<?> list = (List<?>)value;
+			for (int index = 0; index < list.size(); index++) {
+				children.add(getChild(index));
+			}
+		} else if (value instanceof Map) {
+			final Map<?, ?> map = (Map<?, ?>)value;
+			for (final Object key: map.keySet()) {
+				if (key instanceof String) {
+					children.add(getChild((String)key));
+				}
+			}
+		}
+		
+		return children;
 	}
 	
 	@Override
