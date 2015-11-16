@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.joda.time.format.DateTimeFormat;
 
-import uk.nhs.ciao.docs.parser.PropertyNames;
+import uk.nhs.ciao.docs.parser.PropertyName;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
 import uk.nhs.ciao.logging.CiaoLogger;
@@ -40,7 +40,7 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		final Map<String, Object> destination = inPlace ? source : PropertyCloneUtils.deepClone(source);
 		
 		final boolean includeContainers = false;
-		final Set<String> unmappedProperties = PropertyNames.findAll(source, includeContainers);
+		final Set<PropertyName> unmappedProperties = PropertyName.findAll(source, includeContainers);
 		final MappedPropertiesRecorder recorder = new MappedPropertiesRecorder();
 		
 		apply(recorder, source, destination);
@@ -84,7 +84,8 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	}
 	
 	public void renameProperty(final String from, final String to) {
-		transformations.add(new RenamePropertyTransformation(from, new PropertyMutator(to)));
+		transformations.add(new RenamePropertyTransformation(PropertyName.valueOf(from),
+				new PropertyMutator(to)));
 	}
 	
 	public void splitProperty(final String from, final String pattern, final String... to) {
@@ -92,11 +93,12 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 		for (int index = 0; index < to.length; index++) {
 			mutators[index] = new PropertyMutator(to[index]);
 		}
-		transformations.add(new SplitPropertyTransformation(from, pattern, mutators));
+		transformations.add(new SplitPropertyTransformation(PropertyName.valueOf(from), pattern, mutators));
 	}
 	
 	public void splitListProperty(final String from, final String pattern, final String to) {
-		transformations.add(new SplitListPropertyTransformation(from, pattern, new PropertyMutator(to)));
+		transformations.add(new SplitListPropertyTransformation(PropertyName.valueOf(from), pattern,
+				new PropertyMutator(to)));
 	}
 	
 	public void combineProperties(final String to, final String... from) {
@@ -104,7 +106,11 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	}
 	
 	public void combineProperties(final PropertyMutator to, final String... from) {
-		transformations.add(new CombinePropertiesTransformation(to, from));
+		final PropertyName[] fromNames = new PropertyName[from.length];
+		for (int index = 0; index < from.length; index++) {
+			fromNames[index] = PropertyName.valueOf(from[index]);
+		}
+		transformations.add(new CombinePropertiesTransformation(to, fromNames));
 	}
 	
 	public void reformatDateProperty(final String property, final String fromFormat, final String toFormat) {
@@ -112,7 +118,7 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	}
 	
 	public void formatDateProperty(final String from, final String fromFormat, final String to, final String toFormat) {
-		transformations.add(new FormatDatePropertyTransformation(from,
+		transformations.add(new FormatDatePropertyTransformation(PropertyName.valueOf(from),
 				DateTimeFormat.forPattern(fromFormat).withZoneUTC(),
 				new PropertyMutator(to),
 				DateTimeFormat.forPattern(toFormat).withZoneUTC()));
@@ -127,7 +133,7 @@ public class PropertiesTransformer implements PropertiesExtractor<Map<String, Ob
 	public PropertiesTransformer nestedTransformer(final String from) {
 		final PropertiesTransformer transformer = new PropertiesTransformer();
 		transformer.setInPlace(inPlace);
-		transformations.add(new NestedPropertiesTransformation(from, transformer));
+		transformations.add(new NestedPropertiesTransformation(PropertyName.valueOf(from), transformer));
 		return transformer;
 	}
 }

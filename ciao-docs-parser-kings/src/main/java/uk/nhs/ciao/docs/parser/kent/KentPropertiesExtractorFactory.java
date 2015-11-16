@@ -119,14 +119,12 @@ public class KentPropertiesExtractorFactory {
 		transformer.splitProperty("dischargeSummary", "This patient was an? (.+) under the care of (.+)(?: \\(Specialty: (.+)\\)) on (.+) at (.+) on (.+). The patient was discharged on (.+?)\\s*.",
 				"patientType", "doctorName", "doctorSpeciality", "ward", "hospital", "admissionDate", "dischargeDate");
 		
-		transformer.splitProperty("NHS No.", "([\\d ]*\\d)(?: \\(.*)?", "nhsNumber");
-		transformer.splitProperty("NHS No.", ".*\\((.+)\\)\\s*", "nhsNumberVerification");
+		transformer.splitProperty("NHS No\\.", "([\\d ]*\\d)(?: \\(.*)?", "nhsNumber");
+		transformer.splitProperty("NHS No\\.", ".*\\((.+)\\)\\s*", "nhsNumberVerification");
 		
 		transformer.findAndFormatDateProperties("dd/MM/yyyy", "yyyy-MM-dd");
 		transformer.findAndFormatDateProperties("dd/MM/yyyy HH:mm", "yyyy-MM-dd HH:mm");
 		transformer.findAndFormatDateProperties("dd/MM/yyyy HH:mm:ss", "yyyy-MM-dd HH:mm:ss");
-		
-		// TODO: reformat dates - dd/MM/yyyy, dd/MM/yyyy HH:mm, dd/MM/yyyy HH:mm:ss -> yyyy-MM-dd, yyyy-MM-dd HH:mm, yyyy-MM-dd HH:mm:ss
 		
 		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
 		chain.addExtractor(transformer);

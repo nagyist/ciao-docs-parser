@@ -45,6 +45,18 @@ enum ContainerType {
 		}
 		
 		@Override
+		public boolean remove(final Object container, final Object segment) {
+			final Map<String, Object> map = toMap(container);
+			final String key = toKey(segment);
+			if (map == null || key == null) {
+				return false;
+			}
+			
+			map.remove(key);
+			return true;
+		}
+		
+		@Override
 		public Map<String, Object> createContainer() {
 			return Maps.newLinkedHashMap();
 		}
@@ -103,6 +115,29 @@ enum ContainerType {
 			return true;
 		}
 		
+		/**
+		 * {@inheritDoc}
+		 * <p>
+		 * If the specified index is the end of the list, the list is truncated. Otherwise
+		 * the entry is nulled
+		 */
+		@Override
+		public boolean remove(final Object container, final Object segment) {
+			final List<Object> list = toList(container);
+			final Integer index = toIndex(segment);
+			if (list == null || index == null) {
+				return false;
+			}
+			
+			if (index == list.size() - 1) {
+				list.remove(index - 1);
+			} else if (index < list.size()) {
+				list.set(index, null);
+			}
+			
+			return true;
+		}
+		
 		@Override
 		public List<Object> createContainer() {
 			return Lists.newArrayList();
@@ -146,6 +181,16 @@ enum ContainerType {
 	public abstract boolean set(final Object container, final Object segment, final Object value);
 	
 	/**
+	 * Removes the specified property from a container
+	 * 
+	 * @param container The container to remove the the value from
+	 * @param segment The segment identifying the child property within the container
+	 * @return true if the value was removed or did not need removing, or false otherwise
+	 * 		(e.g. the container is of the wrong kind)
+	 */
+	public abstract boolean remove(final Object container, final Object segment);
+	
+	/**
 	 * Creates an empty container of this type
 	 */
 	public abstract Object createContainer();
@@ -165,5 +210,12 @@ enum ContainerType {
 		}
 		
 		return type;
+	}
+
+	/**
+	 * Tests if the specified object can contain other properties
+	 */
+	public static boolean isContainer(final Object candidate) {
+		return candidate instanceof List || candidate instanceof Map;
 	}
 }

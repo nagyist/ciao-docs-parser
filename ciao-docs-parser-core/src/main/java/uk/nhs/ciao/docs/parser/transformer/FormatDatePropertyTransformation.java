@@ -6,6 +6,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.nhs.ciao.docs.parser.PropertyName;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -15,18 +17,18 @@ import com.google.common.base.Strings;
 public class FormatDatePropertyTransformation implements PropertiesTransformation {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatDatePropertyTransformation.class);
 	
-	private final String from;
+	private final PropertyName from;
 	private final PropertyMutator to;
 	private final DateTimeFormatter fromFormat;
 	private final DateTimeFormatter toFormat;
 	private final boolean retainOriginal;
 	
-	public FormatDatePropertyTransformation(final String from, final DateTimeFormatter fromFormat,
+	public FormatDatePropertyTransformation(final PropertyName from, final DateTimeFormatter fromFormat,
 			final PropertyMutator to, final DateTimeFormatter toFormat) {
 		this(from, fromFormat, to, toFormat, true);
 	}
 	
-	public FormatDatePropertyTransformation(final String from, final DateTimeFormatter fromFormat,
+	public FormatDatePropertyTransformation(final PropertyName from, final DateTimeFormatter fromFormat,
 			final PropertyMutator to, final DateTimeFormatter toFormat, final boolean retainOriginal) {
 		this.from = Preconditions.checkNotNull(from);
 		this.fromFormat = Preconditions.checkNotNull(fromFormat);
@@ -38,11 +40,8 @@ public class FormatDatePropertyTransformation implements PropertiesTransformatio
 	@Override
 	public void apply(final TransformationRecorder recorder, final Map<String, Object> source,
 			final Map<String, Object> destination) {
-		if (!source.containsKey(from)) {
-			return;
-		}
-		
-		String inputValue = source.get(from) == null ? null : source.get(from).toString().trim();
+		final Object originalValue = from.get(source);
+		final String inputValue = originalValue == null ? null : originalValue.toString().trim();
 		if (Strings.isNullOrEmpty(inputValue)) {
 			return;
 		}
@@ -52,7 +51,7 @@ public class FormatDatePropertyTransformation implements PropertiesTransformatio
 			final String outputValue = toFormat.print(millis);
 			
 			if (!retainOriginal) {
-				source.remove(from);
+				from.remove(source);
 			}
 			
 			to.set(recorder, from, destination, outputValue);

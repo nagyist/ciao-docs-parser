@@ -2,13 +2,15 @@ package uk.nhs.ciao.docs.parser.transformer;
 
 import java.util.Map;
 
+import uk.nhs.ciao.docs.parser.PropertyName;
+
 import com.google.common.base.Preconditions;
 
 /**
  * Renames / copies a property to a new name
  */
 public class RenamePropertyTransformation implements PropertiesTransformation {
-	private final String from;
+	private final PropertyName from;
 	private final PropertyMutator to;
 	private final boolean retainOriginal;
 	private final boolean cloneNestedProperties;
@@ -17,14 +19,14 @@ public class RenamePropertyTransformation implements PropertiesTransformation {
 	 * Creates a new property rename transformation which retains the original property
 	 * in the source map
 	 */
-	public RenamePropertyTransformation(final String from, final PropertyMutator to) {
+	public RenamePropertyTransformation(final PropertyName from, final PropertyMutator to) {
 		this(from, to, true, false);
 	}
 	
 	/**
 	 * Creates a new property rename transformation
 	 */
-	public RenamePropertyTransformation(final String from, final PropertyMutator to,
+	public RenamePropertyTransformation(final PropertyName from, final PropertyMutator to,
 			final boolean retainOriginal, final boolean cloneNestedProperties) {
 		this.from = Preconditions.checkNotNull(from);
 		this.to = Preconditions.checkNotNull(to);
@@ -35,11 +37,13 @@ public class RenamePropertyTransformation implements PropertiesTransformation {
 	@Override
 	public void apply(final TransformationRecorder recorder, final Map<String, Object> source,
 			final Map<String, Object> destination) {
-		if (!source.containsKey(from)) {
+		Object value = from.get(source);
+		if (value == null) {
 			return;
+		} else if (!retainOriginal) {
+			from.remove(source);
 		}
 		
-		Object value = retainOriginal ? source.get(from) : source.remove(from);
 		if (cloneNestedProperties) {
 			value = PropertyCloneUtils.deepCloneNestedProperties(value);
 		}

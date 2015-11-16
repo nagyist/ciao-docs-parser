@@ -3,15 +3,15 @@ package uk.nhs.ciao.docs.parser.transformer;
 import java.util.List;
 import java.util.Map;
 
-import uk.nhs.ciao.docs.parser.PropertyNames;
+import uk.nhs.ciao.docs.parser.PropertyName;
 
 import com.google.common.base.Preconditions;
 
 public class NestedPropertiesTransformation implements PropertiesTransformation {
-	private final String from;
+	private final PropertyName from;
 	private final PropertiesTransformation transformation;
 	
-	public NestedPropertiesTransformation(final String from, final PropertiesTransformation transformation) {
+	public NestedPropertiesTransformation(final PropertyName from, final PropertiesTransformation transformation) {
 		this.from = Preconditions.checkNotNull(from);
 		this.transformation = Preconditions.checkNotNull(transformation);
 	}
@@ -26,13 +26,11 @@ public class NestedPropertiesTransformation implements PropertiesTransformation 
 			transformation.apply(new NestedTransformationRecorder(from, recorder),
 					nestedProperties, destination);
 		} else if (originalValue instanceof List) {
-			@SuppressWarnings("unchecked")
-			final List<Map<String, Object>> list = (List<Map<String, Object>>)originalValue;
-			int index = 0;
-			for (final Map<String, Object> nestedProperties: list) {
-				transformation.apply(new NestedTransformationRecorder(PropertyNames.valueOf(from, index), recorder),
-					nestedProperties, destination);
-				index++;
+			for (final PropertyName childProperty: from.listChildren(originalValue)) {
+				@SuppressWarnings("unchecked")
+				final Map<String, Object> nestedProperties = childProperty.get(Map.class, originalValue);
+				transformation.apply(new NestedTransformationRecorder(childProperty, recorder),
+						nestedProperties, destination);
 			}
 		}
 	}

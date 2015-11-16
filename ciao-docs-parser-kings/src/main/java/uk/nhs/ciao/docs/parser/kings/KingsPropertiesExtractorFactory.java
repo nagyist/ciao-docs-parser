@@ -182,7 +182,7 @@ public class KingsPropertiesExtractorFactory {
 		transformer.renameProperty("Consultant", "documentAuthorFullName");
 		transformer.renameProperty("NHS Number", "patientNHSNo");
 		transformer.renameProperty("Patient Name", "patientFullName");
-		transformer.splitProperty("D.O.B", "(\\d{2}/\\d{2}/\\d{4}).*",
+		transformer.splitProperty("D\\.O\\.B", "(\\d{2}/\\d{2}/\\d{4}).*",
 				"patientBirthDate");
 		transformer.renameProperty("Usual residence", "patientAddressFull");
 		transformer.renameProperty("Clinical Narative", "clinicalSummary");

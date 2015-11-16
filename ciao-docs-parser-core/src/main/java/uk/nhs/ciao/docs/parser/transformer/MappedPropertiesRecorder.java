@@ -2,21 +2,21 @@ package uk.nhs.ciao.docs.parser.transformer;
 
 import java.util.Set;
 
-import joptsimple.internal.Strings;
+import uk.nhs.ciao.docs.parser.PropertyName;
 
 import com.google.common.collect.Sets;
 
 public class MappedPropertiesRecorder implements TransformationRecorder {
-	private final Set<String> mappedProperties = Sets.newLinkedHashSet();
+	private final Set<PropertyName> mappedProperties = Sets.newLinkedHashSet();
 	
 	@Override
-	public void record(final String from, final String to) {
-		if (!Strings.isNullOrEmpty(from)) {
+	public void record(final PropertyName from, final PropertyName to) {
+		if (from != null) {
 			mappedProperties.add(from);
 		}
 	}
 	
-	public Set<String> getMappedProperties() {
+	public Set<PropertyName> getMappedProperties() {
 		return mappedProperties;
 	}
 }

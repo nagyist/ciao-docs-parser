@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import uk.nhs.ciao.docs.parser.PropertyName;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -13,7 +15,7 @@ import com.google.common.collect.Lists;
  * and assigns the result to the target property
  */
 public class SplitListPropertyTransformation implements PropertiesTransformation {
-	private final String from;
+	private final PropertyName from;
 	private final Pattern pattern;
 	private final PropertyMutator to;
 	private final boolean retainOriginal;
@@ -22,7 +24,7 @@ public class SplitListPropertyTransformation implements PropertiesTransformation
 	 * Creates a new property split transformation which retains the original property
 	 * in the source map
 	 */
-	public SplitListPropertyTransformation(final String from, final String pattern, final PropertyMutator to) {
+	public SplitListPropertyTransformation(final PropertyName from, final String pattern, final PropertyMutator to) {
 		this(from, Pattern.compile(pattern), to);
 	}
 	
@@ -30,14 +32,14 @@ public class SplitListPropertyTransformation implements PropertiesTransformation
 	 * Creates a new property split transformation which retains the original property
 	 * in the source map
 	 */
-	public SplitListPropertyTransformation(final String from, final Pattern pattern, final PropertyMutator to) {
+	public SplitListPropertyTransformation(final PropertyName from, final Pattern pattern, final PropertyMutator to) {
 		this(from, true, pattern, to);
 	}
 	
 	/**
 	 * Creates a new property split transformation
 	 */
-	public SplitListPropertyTransformation(final String from, final boolean retainOriginal, final Pattern pattern, final PropertyMutator to) {
+	public SplitListPropertyTransformation(final PropertyName from, final boolean retainOriginal, final Pattern pattern, final PropertyMutator to) {
 		this.from = Preconditions.checkNotNull(from);
 		this.retainOriginal = retainOriginal;
 		this.pattern = Preconditions.checkNotNull(pattern);
@@ -47,11 +49,7 @@ public class SplitListPropertyTransformation implements PropertiesTransformation
 	@Override
 	public void apply(final TransformationRecorder recorder, final Map<String, Object> source,
 			final Map<String, Object> destination) {
-		if (!source.containsKey(from)) {
-			return;
-		}
-		
-		Object originalValue = source.get(from);
+		Object originalValue = from.get(source);
 		if (!(originalValue instanceof CharSequence)) {
 			return;
 		}
@@ -75,7 +73,7 @@ public class SplitListPropertyTransformation implements PropertiesTransformation
 		if (values.isEmpty()) {
 			return;
 		} else if (!retainOriginal) {
-			source.remove(from);
+			from.remove(source);
 		}
 		
 		to.set(recorder, from, destination, values);

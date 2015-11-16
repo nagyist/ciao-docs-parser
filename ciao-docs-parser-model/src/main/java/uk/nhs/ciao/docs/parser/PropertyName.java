@@ -3,17 +3,28 @@ package uk.nhs.ciao.docs.parser;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Sets;
 
 public final class PropertyName {
+	private static final PropertyName ROOT = new PropertyName(new Object[0]);
+	
 	private final Object[] segments;
 	private volatile String path;
 	private int hash;
-
+	
 	public static PropertyName valueOf(final String path) {
-		return new PropertyName(PropertyPath.parse(path));
+		return Strings.isNullOrEmpty(path) ? ROOT : new PropertyName(PropertyPath.parse(path));
+	}
+	
+	public static PropertyName getRoot() {
+		return ROOT;
 	}
 	
 	PropertyName(final Object[] segments) {
@@ -60,13 +71,21 @@ public final class PropertyName {
 		return new PropertySelector(Arrays.copyOf(segments, segments.length));
 	}
 	
+	public PropertyName getChild(final PropertyName name) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkArgument(!name.isRoot());
+		
+		final Object[] childSegments = ObjectArrays.concat(segments, name.segments, Object.class);
+		return new PropertyName(childSegments);
+	}
+	
 	public PropertyName getChild(final String name) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkArgument(!name.isEmpty());
 		
 		final Object[] childSegments = Arrays.copyOf(segments, segments.length + 1);
 		childSegments[segments.length] = name;
-		return new PropertyName(segments);
+		return new PropertyName(childSegments);
 	}
 	
 	public PropertyName getChild(final int index) {
@@ -74,7 +93,7 @@ public final class PropertyName {
 		
 		final Object[] childSegments = Arrays.copyOf(segments, segments.length + 1);
 		childSegments[segments.length] = index;
-		return new PropertyName(segments);
+		return new PropertyName(childSegments);
 	}
 	
 	public PropertyName getParent() {
@@ -114,6 +133,19 @@ public final class PropertyName {
 		return PropertyPath.setValue(source, segments, value);
 	}
 	
+	public Object getParentContainer(final Object source) {
+		final boolean createIfMissing = false;
+		return getParentContainer(source, createIfMissing);
+	}
+	
+	public Object getParentContainer(final Object source, final boolean createIfMissing) {
+		return PropertyPath.getParentContainer(source, segments, createIfMissing);
+	}
+	
+	public boolean remove(final Object source) {
+		return PropertyPath.remove(source, segments);
+	}
+	
 	@Override
 	public int hashCode() {
 		int result = hash;
@@ -141,6 +173,39 @@ public final class PropertyName {
 	
 	private Object lastSegment() {
 		return segments.length == 0 ? null : segments[segments.length - 1];
+	}
+	
+	public void accept(final Object source, final PropertyVisitor visitor) {
+		visitor.onProperty(this, source);
+
+		if (source instanceof List<?>) {
+			int index = 0;
+			for (final Object childValue: (List<?>)source) {
+				getChild(index).accept(childValue, visitor);
+				index++;
+			}
+		} else if (source instanceof Map<?,?>) {
+			final Map<?, ?> map = (Map<?, ?>)source;
+			for (final Entry<?, ?> entry: map.entrySet()) {
+				if (entry.getKey() instanceof String) {
+					getChild((String)entry.getKey()).accept(entry.getValue(),
+							visitor);
+				}
+			}
+		}
+	}
+	
+	public static Set<PropertyName> findAll(final Object source, final boolean includeContainers) {
+		final Set<PropertyName> names = Sets.newLinkedHashSet();
+		ROOT.accept(source, new PropertyVisitor() {
+			@Override
+			public void onProperty(final PropertyName name, final Object value) {
+				if (includeContainers || !ContainerType.isContainer(value)) {
+					names.add(name);
+				}
+ 			}
+		});
+		return names;
 	}
 	
 	public static void main(final String[] args) throws Exception {
