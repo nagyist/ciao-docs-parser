@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.DateTimeParserBucket;
 
+import uk.nhs.ciao.docs.parser.PropertyName;
 import uk.nhs.ciao.docs.parser.UnsupportedDocumentTypeException;
 import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
 
@@ -79,7 +80,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 * @see NonEmptyPropertyValidation
 	 */
 	public void requireNonEmptyProperty(final String propertyName) {
-		addValidation(new NonEmptyPropertyValidation(propertyName));
+		addValidation(new NonEmptyPropertyValidation(PropertyName.valueOf(propertyName)));
 	}
 	
 	/**
@@ -104,7 +105,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 */
 	public void requireDateProperty(final String propertyName, final String pattern, final boolean lenient) {
 		final boolean required = true;
-		addValidation(new DatePropertyValidation(propertyName, pattern, required, lenient));
+		addValidation(new DatePropertyValidation(PropertyName.valueOf(propertyName), pattern, required, lenient));
 	}
 	
 	/**
@@ -129,7 +130,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 */
 	public void optionalDateProperty(final String propertyName, final String pattern, final boolean lenient) {
 		final boolean required = false;
-		addValidation(new DatePropertyValidation(propertyName, pattern, required, lenient));
+		addValidation(new DatePropertyValidation(PropertyName.valueOf(propertyName), pattern, required, lenient));
 	}
 	
 	/**
@@ -140,7 +141,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 * @see NHSNumberPropertyValidation
 	 */
 	public void requireNHSNumberProperty(final String propertyName) {
-		addValidation(new NHSNumberPropertyValidation(propertyName));
+		addValidation(new NHSNumberPropertyValidation(PropertyName.valueOf(propertyName)));
 	}
 	
 	/**
@@ -165,7 +166,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 			}
 		}
 		
-		public void addPropertyValidationError(final String propertyName, final String description) {
+		public void addPropertyValidationError(final PropertyName propertyName, final String description) {
 			addError(new PropertyValidationError(propertyName, description));
 		}
 		
@@ -189,10 +190,10 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	}
 	
 	public static class PropertyValidationError {
-		private final String propertyName;
+		private final PropertyName propertyName;
 		private final String description;
 		
-		public PropertyValidationError(final String propertyName, final String description) {
+		public PropertyValidationError(final PropertyName propertyName, final String description) {
 			this.propertyName = Preconditions.checkNotNull(propertyName);
 			this.description = Strings.nullToEmpty(description);
 		}
@@ -208,15 +209,15 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	 * and that the associated value is not empty.
 	 */
 	public static class NonEmptyPropertyValidation implements PropertiesValidation {
-		private final String propertyName;
+		private final PropertyName propertyName;
 		
-		public NonEmptyPropertyValidation(final String propertyName) {
+		public NonEmptyPropertyValidation(final PropertyName propertyName) {
 			this.propertyName = Preconditions.checkNotNull(propertyName);
 		}
 		
 		@Override
 		public void validate(final Map<String, Object> properties, final ValidationResult result) {
-			final Object value = properties.get(propertyName);
+			final Object value = propertyName.get(properties);
 			
 			final boolean isEmpty;
 			if (value instanceof CharSequence) {
@@ -234,15 +235,15 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	}
 	
 	public static class DatePropertyValidation implements PropertiesValidation {
-		private final String propertyName;
+		private final PropertyName propertyName;
 		private final DateTimeFormatter formatter;
 		private final boolean required;
 		
-		public DatePropertyValidation(final String propertyName, final String pattern, final boolean required, final boolean lenient) {
+		public DatePropertyValidation(final PropertyName propertyName, final String pattern, final boolean required, final boolean lenient) {
 			this(propertyName, DateTimeFormat.forPattern(pattern), required, lenient);
 		}
 		
-		public DatePropertyValidation(final String propertyName, final DateTimeFormatter formatter,
+		public DatePropertyValidation(final PropertyName propertyName, final DateTimeFormatter formatter,
 				final boolean required, final boolean lenient) {
 			Preconditions.checkNotNull(formatter);
 			this.propertyName = Preconditions.checkNotNull(propertyName);			
@@ -252,7 +253,7 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 		
 		@Override
 		public void validate(final Map<String, Object> properties, final ValidationResult result) {
-			final Object value = properties.get(propertyName);
+			final Object value = propertyName.get(properties);
 			if (value == null) {
 				if (required) {
 					result.addPropertyValidationError(propertyName, "must be specified");
@@ -297,15 +298,15 @@ public class PropertiesValidator implements PropertiesExtractor<Map<String, Obje
 	}
 	
 	public static class NHSNumberPropertyValidation implements PropertiesValidation {
-		private final String propertyName;
+		private final PropertyName propertyName;
 		
-		public NHSNumberPropertyValidation(final String propertyName) {
+		public NHSNumberPropertyValidation(final PropertyName propertyName) {
 			this.propertyName = Preconditions.checkNotNull(propertyName);
 		}
 		
 		@Override
 		public void validate(final Map<String, Object> properties, final ValidationResult result) {
-			final Object value = properties.get(propertyName);
+			final Object value = propertyName.get(properties);
 			
 			if (value == null) {
 				result.addPropertyValidationError(propertyName, "must be specified");
