@@ -278,18 +278,78 @@ final class PropertyPath {
 	 * Tests if the specified segments contains a wildcard (ANY_KEY or ANY_INDEX)
 	 */
 	public static boolean containsWildcard(final Object[] segments) {
-		for (final Object segment: segments) {
-			if (ANY_KEY == segment || ANY_INDEX == segment) {
+		return containsWildcard(segments, 0, segments.length);
+	}
+	
+	/**
+	 * Tests if the specified segments contains a wildcard (ANY_KEY or ANY_INDEX)
+	 */
+	private static boolean containsWildcard(final Object[] segments, final int startIndex, final int length) {
+		for (int index = startIndex; index < startIndex + length; index++) {
+			final Object segment = segments[index];
+			if (isWildcard(segment)) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
+	private static boolean isWildcard(final Object segment) {
+		return ANY_KEY == segment || ANY_INDEX == segment;
+	}
+	
 	public static <T> T getValue(final Class<T> type, final Object source, final Object[] segments) {
 		return get(type, source, segments, 0, null);
 	}
+	
+	public static boolean setValue(final Object source, final Object[] segments, final Object value) {
+		if (source == null || segments.length == 0) {
+			return false;
+		}
 		
+		final Object finalSegment = segments[segments.length - 1];
+		if (isWildcard(finalSegment)) {
+			return false;
+		}
+		
+		final Object parent = makeParents(source, segments);
+		final ContainerType parentType = ContainerType.getContainingType(finalSegment);
+		return parentType.set(parent, finalSegment, value);
+	}
+	
+	public static Object makeParents(final Object source, final Object[] segments) {
+		if (source == null || segments.length == 0 || containsWildcard(segments, 0, segments.length - 1)) {
+			return null;
+		}
+		
+		Object parent = source;
+		for (int index = 0; index < segments.length - 1; index++) {
+			final ContainerType type = ContainerType.getContainingType(segments[index + 1]);
+			parent = makeContainer(parent, segments[index], type);
+		}
+		
+		final Object finalSegment = segments[segments.length - 1];
+		final ContainerType parentType = ContainerType.getContainingType(finalSegment);		
+		return parentType.isType(parent) ? parent : null;
+	}
+	
+	private static Object makeContainer(final Object parent, final Object segment, final ContainerType type) {
+		final ContainerType parentType = ContainerType.getContainingType(segment);
+		if (!parentType.isType(parent)) {
+			return null;
+		}
+		
+		Object value = parentType.get(parent, segment);
+		if (value == null) {
+			value = type.createContainer();
+			type.set(parent, segment, value);
+		} else if (!type.isType(value)) {
+			value = null; // wrong type
+		}
+		
+		return value;
+	}
+
 	public static <T> Entry<Object[], T> getEntry(final Class<T> type, final Object source, final Object[] segments) {
 		final Object[] resultSegments;
 		final T value;

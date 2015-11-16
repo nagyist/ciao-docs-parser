@@ -102,6 +102,18 @@ public final class PropertyName {
 		return children;
 	}
 	
+	public Object get(final Object source) {
+		return get(Object.class, source);
+	}
+	
+	public <T> T get(final Class<T> type, final Object source) {
+		return PropertyPath.getValue(type, source, segments);
+	}
+	
+	public boolean set(final Object source, final Object value) {
+		return PropertyPath.setValue(source, segments, value);
+	}
+	
 	@Override
 	public int hashCode() {
 		int result = hash;
