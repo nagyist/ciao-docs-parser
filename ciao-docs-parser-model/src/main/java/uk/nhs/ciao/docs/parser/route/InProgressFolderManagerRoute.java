@@ -11,7 +11,10 @@ import org.joda.time.format.DateTimeFormatter;
 
 import uk.nhs.ciao.camel.BaseRouteBuilder;
 import uk.nhs.ciao.logging.CiaoCamelLogger;
+import uk.nhs.ciao.util.Clock;
+import uk.nhs.ciao.util.SystemClock;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -126,10 +129,15 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 		public static final String INFRASTRUCTURE_NACK = "inf-nack";
 		public static final String BUSINESS_ACK = "bus-ack";
 		public static final String BUSINESS_NACK = "bus-nack";
+		
+		private MessageType() {
+			// Suppress default constructor
+		}
 	}
 	
 	private String inProgressFolderManagerUri;
 	private String inProgressFolderRootUri;
+	private Clock clock = SystemClock.getInstance();
 	
 	public void setInProgressFolderManagerUri(final String inProgressFolderManagerUri) {
 		this.inProgressFolderManagerUri = inProgressFolderManagerUri;
@@ -137,6 +145,10 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 	
 	public void setInProgressFolderRootUri(final String inProgressFolderRootUri) {
 		this.inProgressFolderRootUri = inProgressFolderRootUri;
+	}
+	
+	public void setClock(final Clock clock) {
+		this.clock = Preconditions.checkNotNull(clock);
 	}
 	
 	private String getStoreEventFileUri() {
@@ -246,7 +258,7 @@ public class InProgressFolderManagerRoute extends BaseRouteBuilder {
 				throw new Exception("Missing header " + Header.EVENT_TYPE);
 			}
 			
-			final String timestamp = TIMESTAMP_FORMAT.print(System.currentTimeMillis());
+			final String timestamp = TIMESTAMP_FORMAT.print(clock.getMillis());
 			final String fileName = id + "/events/" + timestamp + "-" + messageType + "-" + eventType;
 			message.setHeader(Exchange.FILE_NAME, fileName);
 		}
