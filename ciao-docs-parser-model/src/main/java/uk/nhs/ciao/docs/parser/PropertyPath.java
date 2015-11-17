@@ -331,7 +331,7 @@ final class PropertyPath {
 		final boolean createIfMissing = false;
 		final Object parent = getParentContainer(source, segments, createIfMissing);
 		if (parent == null) {
-			return true;
+			return false;
 		}
 		
 		final ContainerType parentType = ContainerType.getContainingType(finalSegment);
@@ -364,7 +364,7 @@ final class PropertyPath {
 		if (value == null) {
 			if (createIfMissing) {
 				value = type.createContainer();
-				type.set(parent, segment, value);
+				parentType.set(parent, segment, value);
 			}
 		} else if (!type.isType(value)) {
 			value = null; // wrong type

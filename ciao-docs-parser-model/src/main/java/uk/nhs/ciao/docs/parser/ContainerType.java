@@ -52,8 +52,11 @@ enum ContainerType {
 				return false;
 			}
 			
-			map.remove(key);
-			return true;
+			final boolean removed = map.containsKey(key);
+			if (removed) {
+				map.remove(key);
+			}
+			return removed;
 		}
 		
 		@Override
@@ -107,7 +110,7 @@ enum ContainerType {
 				return false;
 			}
 			
-			while (list.size() < index - 1) {
+			while (list.size() <= index) {
 				list.add(null);
 			}
 			
@@ -129,13 +132,17 @@ enum ContainerType {
 				return false;
 			}
 			
+			
+			boolean removed = false;
 			if (index == list.size() - 1) {
 				list.remove(index - 1);
+				removed = true;
 			} else if (index < list.size()) {
 				list.set(index, null);
+				removed = true;
 			}
 			
-			return true;
+			return removed;
 		}
 		
 		@Override
@@ -185,8 +192,8 @@ enum ContainerType {
 	 * 
 	 * @param container The container to remove the the value from
 	 * @param segment The segment identifying the child property within the container
-	 * @return true if the value was removed or did not need removing, or false otherwise
-	 * 		(e.g. the container is of the wrong kind)
+	 * @return true if the value was removed, or false otherwise
+	 * 		(e.g. the container is of the wrong kind or the value did not exist)
 	 */
 	public abstract boolean remove(final Object container, final Object segment);
 	

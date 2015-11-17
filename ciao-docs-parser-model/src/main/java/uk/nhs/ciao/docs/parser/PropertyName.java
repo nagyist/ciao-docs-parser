@@ -16,8 +16,7 @@ public final class PropertyName {
 	private static final PropertyName ROOT = new PropertyName(new Object[0]);
 	
 	private final Object[] segments;
-	private volatile String path;
-	private int hash;
+	private final String path;
 	
 	public static PropertyName valueOf(final String path) {
 		return Strings.isNullOrEmpty(path) ? ROOT : new PropertyName(PropertyPath.parse(path));
@@ -28,12 +27,8 @@ public final class PropertyName {
 	}
 	
 	PropertyName(final Object[] segments) {
-		this(segments, null);
-	}
-	
-	private PropertyName(final Object[] segments, final String path) {
 		this.segments = segments;
-		this.path = path;
+		this.path = PropertyPath.toString(segments);
 	}
 	
 	public boolean isRoot() {
@@ -57,10 +52,6 @@ public final class PropertyName {
 	}
 	
 	public String getPath() {
-		if (path == null) {
-			path = PropertyPath.toString(segments);
-		}
-		
 		return path;
 	}
 	
@@ -103,7 +94,7 @@ public final class PropertyName {
 	public List<PropertyName> listChildren(final Object source) {
 		final List<PropertyName> children = Lists.newArrayList();
 
-		final Object value = PropertyPath.getValue(Object.class, source, segments);
+		final Object value = get(source);
 		if (value instanceof List) {
 			final List<?> list = (List<?>)value;
 			for (int index = 0; index < list.size(); index++) {
@@ -148,12 +139,7 @@ public final class PropertyName {
 	
 	@Override
 	public int hashCode() {
-		int result = hash;
-		if (result == 0) {
-			result = Arrays.hashCode(segments);
-			hash = result; // safe to publish without volatile
-		}
-		return result;
+		return path.hashCode();
 	}
 	
 	@Override
@@ -163,7 +149,7 @@ public final class PropertyName {
 		} else if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
-		return Arrays.equals(segments, ((PropertyName)obj).segments);
+		return path.equals(((PropertyName)obj).path);
 	}
 	
 	@Override
@@ -197,7 +183,7 @@ public final class PropertyName {
 	
 	public static Set<PropertyName> findAll(final Object source, final boolean includeContainers) {
 		final Set<PropertyName> names = Sets.newLinkedHashSet();
-		ROOT.accept(source, new PropertyVisitor() {
+		getRoot().accept(source, new PropertyVisitor() {
 			@Override
 			public void onProperty(final PropertyName name, final Object value) {
 				if (includeContainers || !ContainerType.isContainer(value)) {
@@ -206,14 +192,5 @@ public final class PropertyName {
  			}
 		});
 		return names;
-	}
-	
-	public static void main(final String[] args) throws Exception {
-		for (final String path: Arrays.asList("", "value", "[1]", "nested.value", "multi[1][2]", "combined.values[12].t1", "escape\\.d")) {
-			final PropertyName name = valueOf(path);
-			System.out.println("segments: " + Arrays.toString(name.segments));
-			System.out.println("path: " + name);
-			System.out.println();
-		}
 	}
 }
