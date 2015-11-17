@@ -1,5 +1,7 @@
 package uk.nhs.ciao.docs.parser.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -118,7 +120,21 @@ public abstract class NodeStream {
 	public static NodeStream createStream(final NodeList nodeList, final int index, final int length) {
 		return new NodeListNodeStream(nodeList, index, length);
 	}
+
+	/**
+	 * Creates a new stream backed by the specified List of nodes
+	 */
+	public static NodeStream createStream(final List<? extends Node> list) {
+		return createStream(list, 0, list.size());
+	}
 	
+	/**
+	 * Creates a new stream backed by the specified List of nodes and index range
+	 */
+	public static NodeStream createStream(final List<? extends Node> list, final int index, final int length) {
+		return new ListNodeStream(list, index, length);
+	}
+
 	/**
 	 * Node stream backed by a single Node
 	 */
@@ -229,6 +245,69 @@ public abstract class NodeStream {
 			this.index = stream.index;
 		}
 
+		@Override
+		public NodeStream resetStream() {
+			stream.index = index;
+			return stream;
+		}
+	}
+	
+	/**
+	 * Node stream backed by a List of nodes
+	 */
+	private static class ListNodeStream extends NodeStream {
+		private final List<? extends Node> list;
+		private final int length;
+		private int index;
+
+		public ListNodeStream(final List<? extends Node> list, final int index,
+				final int length) {
+			this.list = list;
+			this.index = index;
+			this.length = length;
+		}
+
+		@Override
+		public Node take() {
+			final Node result = peek();
+			if (result != null) {
+				index++;
+			}
+			return result;
+		}
+
+		@Override
+		public int remaining() {
+			return length - index;
+		}
+
+		@Override
+		public Node peek(final int index) {
+			if (index < 0 || index >= remaining()) {
+				return null;
+			}
+
+			return list.get(this.index + index);
+		}
+
+		@Override
+		public Mark mark() {
+			return new ListMark(this);
+		}
+	}
+	
+	/**
+	 * Marks a position within a {@link ListNodeStream}
+	 */
+	private static class ListMark implements Mark {
+		private final ListNodeStream stream;
+		private final int index;
+
+		public ListMark(final ListNodeStream stream) {
+			this.stream = stream;
+			this.index = stream.index;
+		}
+		
 		@Override
 		public NodeStream resetStream() {
 			stream.index = index;
