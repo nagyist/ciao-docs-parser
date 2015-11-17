@@ -164,4 +164,13 @@ public class PropertyNameTest {
 		final PropertyName parent = PropertyName.valueOf("names");
 		Assert.assertEquals(PropertyName.valueOf("names[1]"), parent.getChild(PropertyName.valueOf("[1]")));
 	}
+	
+	@Test
+	public void testToPropertySelectorRoundtrip() {
+		final PropertyName name = PropertyName.valueOf("names[2].extended.title");
+		final PropertySelector expected = PropertySelector.valueOf("names[2].extended.title");
+		final PropertySelector actual = name.toPropertySelector();
+		Assert.assertEquals(expected, actual);
+		Assert.assertEquals(name, actual.toPropertyName());
+	}
 }
