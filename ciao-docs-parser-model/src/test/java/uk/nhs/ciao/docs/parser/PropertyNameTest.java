@@ -95,7 +95,7 @@ public class PropertyNameTest {
 		Assert.assertTrue(list.isEmpty());
 		
 		// Check that the parents are created when the option is enabled
-		final Object container = name.getParentContainer(list, true);
+		final Object container = name.makeParents(list);
 		Assert.assertNotNull(container);
 		Assert.assertTrue(container instanceof Map);
 		
