@@ -387,24 +387,6 @@ final class PropertyPath {
 		return value == null ? null : SimpleEntry.valueOf(resultSegments, value);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static List<Object> getValueAsList(final Object source, final Object[] segments) {
-		final Object value = getValue(List.class, source, segments);
-		if (value instanceof List) {
-			return (List<Object>)value;
-		}
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static Map<String, Object> getValueAsMap(final Object source, final Object[] segments) {
-		final Object value = getValue(Map.class, source, segments);
-		if (value instanceof Map) {
-			return (Map<String, Object>)value;
-		}
-		return null;
-	}
-	
 	private static <T> T get(final Class<T> type, final Object source, final Object[] segments, final int start, final Object[] resultSegments) {
 		if (source == null || start == segments.length) {
 			return type.isInstance(source) ? type.cast(source) : null;
