@@ -150,4 +150,18 @@ public class PropertyNameTest {
 		// Containers of the wrong kind have no effect
 		Assert.assertFalse(name.remove(Lists.newArrayList("name")));
 	}
+	
+	@Test
+	public void testGetParent() {
+		final PropertyName parent = PropertyName.valueOf("names");
+		Assert.assertEquals(parent, PropertyName.valueOf("names[2]").getParent());
+		Assert.assertEquals(parent, PropertyName.valueOf("names.title").getParent());
+		Assert.assertNull(PropertyName.getRoot().getParent());
+	}
+	
+	@Test
+	public void testGetChild() {
+		final PropertyName parent = PropertyName.valueOf("names");
+		Assert.assertEquals(PropertyName.valueOf("names[1]"), parent.getChild(PropertyName.valueOf("[1]")));
+	}
 }
