@@ -14,15 +14,12 @@ import uk.nhs.ciao.docs.parser.extractor.ObjectTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PrefixMode;
 import uk.nhs.ciao.docs.parser.extractor.PrefixedPropertyExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractor;
-import uk.nhs.ciao.docs.parser.extractor.PropertiesExtractorChain;
 import uk.nhs.ciao.docs.parser.extractor.PropertySplitTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.PropertyTableExtractor;
 import uk.nhs.ciao.docs.parser.extractor.SinglePropertyExtractor;
 import uk.nhs.ciao.docs.parser.extractor.SplitterPropertiesExtractor;
 import uk.nhs.ciao.docs.parser.extractor.ValueMode;
 import uk.nhs.ciao.docs.parser.extractor.WhitespaceMode;
-import uk.nhs.ciao.docs.parser.transformer.PropertiesTransformer;
-import uk.nhs.ciao.docs.parser.xml.NodeStream;
 import uk.nhs.ciao.docs.parser.xml.XPathNodeSelector;
 
 /**
@@ -111,24 +108,6 @@ public class KentPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Management']]/tbody/tr/td"),
 				new PropertyTableExtractor());
 		
-		final PropertiesTransformer transformer = new PropertiesTransformer();
-		transformer.splitListProperty("hospitalName", "\\r?\\n", "hospitalName");
-		transformer.splitListProperty("Address", " *\\r?\\n *", "Address");
-		transformer.splitProperty("gpName", "Dear (.+)", "gpName");
-		
-		transformer.splitProperty("dischargeSummary", "This patient was an? (.+) under the care of (.+)(?: \\(Specialty: (.+)\\)) on (.+) at (.+) on (.+). The patient was discharged on (.+?)\\s*.",
-				"patientType", "doctorName", "doctorSpeciality", "ward", "hospital", "admissionDate", "dischargeDate");
-		
-		transformer.splitProperty("NHS No\\.", "([\\d ]*\\d)(?: \\(.*)?", "nhsNumber");
-		transformer.splitProperty("NHS No\\.", ".*\\((.+)\\)\\s*", "nhsNumberVerification");
-		
-		transformer.findAndFormatDateProperties("dd/MM/yyyy", "yyyy-MM-dd");
-		transformer.findAndFormatDateProperties("dd/MM/yyyy HH:mm", "yyyy-MM-dd HH:mm");
-		transformer.findAndFormatDateProperties("dd/MM/yyyy HH:mm:ss", "yyyy-MM-dd HH:mm:ss");
-		
-		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
-		chain.addExtractor(transformer);
-		
-		return new NodeStreamToDocumentPropertiesExtractor(chain);
+		return new NodeStreamToDocumentPropertiesExtractor(splitter);
 	}
 }
