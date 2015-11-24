@@ -40,26 +40,51 @@ public class KentPropertiesExtractorFactory {
 	public static PropertiesExtractor<Document> createEDNExtractor() throws XPathExpressionException {
 		final XPath xpath = XPathFactory.newInstance().newXPath();
 		
+		/*
+		 * The splitter finds sections / sets of child nodes within the document and
+		 * sends them to a delegate extractor to find the properties
+		 * Typically XPath expressions are used to find the matching nodes
+		 */
 		final SplitterPropertiesExtractor splitter = new SplitterPropertiesExtractor();
 		
+		// The single property extractor extracts the matching text as a single named property
 		splitter.addSelection(new XPathNodeSelector(xpath, "(/html/body/table[1]/tbody/tr/td/table/tbody/tr/td)[1]"),
 				new SinglePropertyExtractor("trustName"));
 		
+		/*
+		 * The nested object property extractor stores one (or more) Map/objects against the named property.
+		 * A delegate extractor is used to determine the 'shape' of the object
+		 * In this case a property table extractor is used to find a set of key value pairs - keys are detected
+		 * by looking for a ':' suffix 
+		 */
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='AMENDED VERSION']]/tbody/tr[2]/td"),
 				new NestedObjectPropertyExtractor("amendedVersion", new PropertyTableExtractor()));
 		
+		/*
+		 * Splitters can be nested - in this case a section of the document handles hospital details and has
+		 * multiple patterns inside that section. The splitter is used to simplify the nested XPath expressions since
+		 * they all share a common starting point
+		 */
 		final SplitterPropertiesExtractor hospitalDetailsSplitter = new SplitterPropertiesExtractor();
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[starts-with(.,'Ward Tel:')]]/tbody"), hospitalDetailsSplitter);
 		
 		hospitalDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "(./tr/td/table)[1]/tbody/tr/td"),
 				new SinglePropertyExtractor("hospitalName", WhitespaceMode.TRIM));
 		
+
+		/*
+		 * A key/value property extractor uses a regex expression to split text into a key/value pair.
+		 */
 		hospitalDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "(./tr/td/table)[2]/tbody/tr/td"),
-				new KeyValuePropertyExtractor(":"));
+				new KeyValuePropertyExtractor(":")); 
 		
 		hospitalDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "./tr/td[starts-with(.,'Dear')]"),
 				new SinglePropertyExtractor("gpName"));
 		
+		/*
+		 * A prefixed property extractor delegates calls to some other extractor (in this case a property table) and prefixes all
+		 * the returned properties with the specified prefix.
+		 */
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Medicines Reconcilation']]/tbody/tr/td/table/tbody/tr/td"),
 				new PrefixedPropertyExtractor("medicinesReconcilation", new PropertyTableExtractor(), PrefixMode.CAMEL_CASE));
 		
@@ -74,6 +99,10 @@ public class KentPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Patient:'] and descendant::td[text()='NHS No.:']]"),
 				patientDetailsSplitter);
 		
+		/*
+		 * A property split table extractor searches two tables (or lists of nodes) in parallel - the first contains the keys, the second the values.
+		 * The row indices must match between the two lists.
+		 */
 		patientDetailsSplitter.addSelection(new XPathNodeSelector(xpath, "./tbody"),
 				new PropertySplitTableExtractor(xpath, "(./tr/td/table)[1]/tbody/tr/td", "(./tr/td/table)[2]/tbody/tr/td"));
 		
@@ -95,9 +124,14 @@ public class KentPropertiesExtractorFactory {
 		dischargeMedicationStaffSplitter.addSelection(new XPathNodeSelector(xpath, "./td"),
 				new PropertyTableExtractor());
 		
+		/*
+		 * An object table extractor treats the input nodes as real tabular structure. The initially selected nodes should correspond to
+		 * the rows in the table. A nested XPath selector is called for each row to find the child columns.
+		 * The first row is used to determine the property names, subsequent rows create an object with those property names associated
+		 * columns as values. The output is list of objects all of which contain the same (possibly empty) property names
+		 */
 		dischargeMedicationSplitter.addSelection(new XPathNodeSelector(xpath, "(./tbody/tr/td/table)[descendant::td[text()='Drug']]/tbody"),
 				new ObjectTableExtractor(xpath, "./tr[1]/td", "dischargeMedication"));
-		// TODO: Additional text details *may* be present in another mostly empty tr row!
 						
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Clinical Assessment']]/tbody/tr/td"),
 				new PropertyTableExtractor());
@@ -108,6 +142,7 @@ public class KentPropertiesExtractorFactory {
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[descendant::td[text()='Management']]/tbody/tr/td"),
 				new PropertyTableExtractor());
 		
+		// Finally adapt the incoming DOM to use the NodeStream interface
 		return new NodeStreamToDocumentPropertiesExtractor(splitter);
 	}
 }

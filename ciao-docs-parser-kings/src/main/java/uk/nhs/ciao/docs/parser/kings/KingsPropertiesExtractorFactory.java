@@ -147,17 +147,40 @@ public class KingsPropertiesExtractorFactory {
 	 * is processed in sections, where each section uses a given pattern to define name/value pairs.
 	 */
 	public static PropertiesExtractor<Document> createWordDischargeNotificationExtractor(final XPath xpath) throws XPathExpressionException {		
+		/*
+		 * The splitter finds sections / sets of child nodes within the document and
+		 * sends them to a delegate extractor to find the properties
+		 * Typically XPath expressions are used to find the matching nodes
+		 */
 		final SplitterPropertiesExtractor splitter = new SplitterPropertiesExtractor();
 		
+		/*
+		 * The WordDischargeNotificationDetector is a 'custom' class which checks the incoming document title
+		 * If the title does not match the expected value an UnsupportedDocumentTypeException is thrown parsing stops
+		 */
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=1]//p/b"), new WordDischargeNotificationDetector());
 
+		// The single property extractor extracts the matching text as a single named property
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/p[position()=1]"),
 				new SinglePropertyExtractor("hospitalAddress"));
+		
+		/*
+		 * The property table extractor is used to find a set of key value pairs - keys are detected
+		 * by looking for a ':' suffix 
+		 * A property table is not really 'tabular' in the semantic sense - it is closer to the idea
+		 * of an HTML definition list (dl)
+		 */
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=2]/*/tr/td/p"),
 				new PropertyTableExtractor(ValueMode.MULTIPLE_VALUES));
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[position()=3]/*/tr/td/p"),
 				new PropertyTableExtractor());
 		
+		/*
+		 * An object table extractor treats the input nodes as real tabular structure. The initially selected nodes should correspond to
+		 * the rows in the table. A nested XPath selector is called for each row to find the child columns.
+		 * The first row is used to determine the property names, subsequent rows create an object with those property names associated
+		 * columns as values. The output is list of objects all of which contain the same (possibly empty) property names
+		 */
 		splitter.addSelection(new XPathNodeSelector(xpath, "/html/body/table[count(preceding::b[text()='Consultant follow up:']) = 1 and count(following::b[text()='Discharge Medication']) = 1]/*/tr"),
 				new ObjectTableExtractor(xpath, "./td/p", "allergens"));
 		
@@ -173,9 +196,11 @@ public class KingsPropertiesExtractorFactory {
 		validator.requireDateProperty("D\\.O\\.B", "dd/MM/yyyy", true);
 		validator.requireNonEmptyProperty("Self Discharge");
 		
+		// Extractors can be chained - in this case the top-level splitter -> validator
 		final PropertiesExtractorChain<NodeStream> chain = new PropertiesExtractorChain<NodeStream>(splitter);
 		chain.addExtractor(validator);
 		
+		// Finally adapt the incoming DOM to use the NodeStream interface
 		return new NodeStreamToDocumentPropertiesExtractor(chain);
 	}
 }
