@@ -26,7 +26,6 @@ The following properties extractors are provided:
 
 -   [RegexPropertiesExtractor](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/RegexPropertiesExtractor.java) - Properties are extracted through a series of regular expressions.
 - [SplitterPropertiesExtractor](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/SplitterPropertiesExtractor.java) - Splits the document into multiple parts via selectors (e.g. [XPathNodeSelector](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/XPathNodeSelector.java)) and delegates extraction for that section to a configured property extractor.
--   [PropertiesTransformer](./ciao-docs-parser-core/src/main/java/uk/nhs/ciao/docs/parser/transformer/PropertiesTransformer.java) - Alters previously extracted properties using a variety of configurable transformations (e.g. copy, rename, split, combine, etc...)
 - [ciao-docs-parser-kings](./ciao-docs-parser-kings) - Module which provides various parsers for Kings College University Hospital PDF and Word documents.
 
 For more advanced usages, a custom document parser can be integrated by implementing parser Java interfaces and providing a suitable spring XML configuration on the classpath.
